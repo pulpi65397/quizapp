@@ -1,0 +1,23 @@
+﻿@model QuizApp.Models.Quiz
+
+<h1>@Model.Tytul</h1>
+
+<form asp-action="Submit" method="post">
+    <input type="hidden" name="quizId" value="@Model.Id" />
+
+    @foreach (var pytanie in Model.Pytania)
+    {
+        <div>
+            <p>@pytanie.Tekst</p>
+            @foreach (var odp in pytanie.Odpowiedzi)
+            {
+                <input type="radio" name="odpowiedzi[@pytanie.Id]" value="@odp.Id" />
+                <label>@odp.Tekst</label>
+
+                <br />
+            }
+        </div>
+    }
+
+    <button type="submit">Zakończ Quiz</button>
+</form>
