@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Dodaj DbContext do usługi
 builder.Services.AddDbContext<QuizAppContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("QuizAppContext")));
 
 // Dodaj usługi tożsamości
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
