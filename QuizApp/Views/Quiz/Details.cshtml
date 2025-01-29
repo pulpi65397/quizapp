@@ -5,7 +5,7 @@
 }
 
 <h1>Details</h1>
-<h2>Szczegóły quizu: @Model.Tytul</h2>
+
 <div>
     <h4>Quiz</h4>
     <hr />
@@ -24,13 +24,6 @@
         </dd>
     </dl>
 </div>
-<h3>Pytania:</h3>
-<ul>
-    @foreach (var pytanie in Model.Pytania)
-    {
-        <li>@pytanie.Tekst</li>
-    }
-</ul>
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
