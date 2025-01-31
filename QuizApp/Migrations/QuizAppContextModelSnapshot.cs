@@ -257,10 +257,6 @@ namespace QuizApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("PoprawnaOdpowiedz")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("QuizId")
                         .HasColumnType("int");
 
@@ -295,27 +291,6 @@ namespace QuizApp.Migrations
                     b.ToTable("Quiz");
                 });
 
-            modelBuilder.Entity("QuizApp.Models.Uzytkownik", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nick")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Uzytkownik");
-                });
-
             modelBuilder.Entity("QuizApp.Models.Wynik", b =>
                 {
                     b.Property<int>("Id")
@@ -324,21 +299,17 @@ namespace QuizApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int>("Punkty")
                         .HasColumnType("int");
 
                     b.Property<int>("QuizId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UzytkownikId")
-                        .HasColumnType("int");
+                    b.Property<string>("UzytkownikId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("QuizId");
 
@@ -422,17 +393,13 @@ namespace QuizApp.Migrations
 
             modelBuilder.Entity("QuizApp.Models.Wynik", b =>
                 {
-                    b.HasOne("ApplicationUser", null)
-                        .WithMany("Wyniki")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("QuizApp.Models.Quiz", "Quiz")
                         .WithMany()
                         .HasForeignKey("QuizId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("QuizApp.Models.Uzytkownik", "Uzytkownik")
+                    b.HasOne("ApplicationUser", "Uzytkownik")
                         .WithMany("Wyniki")
                         .HasForeignKey("UzytkownikId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -456,11 +423,6 @@ namespace QuizApp.Migrations
             modelBuilder.Entity("QuizApp.Models.Quiz", b =>
                 {
                     b.Navigation("Pytania");
-                });
-
-            modelBuilder.Entity("QuizApp.Models.Uzytkownik", b =>
-                {
-                    b.Navigation("Wyniki");
                 });
 #pragma warning restore 612, 618
         }

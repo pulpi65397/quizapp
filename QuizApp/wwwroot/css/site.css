@@ -18,5 +18,18 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    color: blue; /* Mo¿esz u¿yæ konkretnego odcienia niebieskiego, np. #007bff */
+    margin-bottom: 60px;
+}
+h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    color: #0056b3; /* Nieco ciemniejszy niebieski dla nag³ówków */
+}
+.navbar-brand {
+    font-family: 'Jost', sans-serif;
+    font-weight: 600;
+    color: #FFFF00; /* Mo¿esz u¿yæ konkretnego odcienia ¿ó³tego, np. #FFFF00 */
 }

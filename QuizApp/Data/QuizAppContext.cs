@@ -17,8 +17,6 @@ namespace QuizApp.Data
 
         public DbSet<QuizApp.Models.Quiz> Quiz { get; set; } = default!;
 
-        public DbSet<QuizApp.Models.Uzytkownik> Uzytkownik { get; set; } = default!;
-
         public DbSet<QuizApp.Models.Pytanie> Pytanie { get; set; } = default!;
 
         public DbSet<QuizApp.Models.Odpowiedz> Odpowiedz { get; set; } = default!;
@@ -33,7 +31,8 @@ namespace QuizApp.Data
             modelBuilder.Entity<Pytanie>()
                 .HasOne(p => p.Quiz)
                 .WithMany(q => q.Pytania)  
-                .HasForeignKey(p => p.QuizId);
+                .HasForeignKey(p => p.QuizId)
+                .OnDelete(DeleteBehavior.Cascade);
 
 
             modelBuilder.Entity<Odpowiedz>()
@@ -44,8 +43,7 @@ namespace QuizApp.Data
 
             modelBuilder.Entity<Wynik>()
                 .HasOne(w => w.Uzytkownik)
-                .WithMany(u => u.Wyniki)  
-                .HasForeignKey(w => w.UzytkownikId);
+                .WithMany(u => u.Wyniki);
 
 
         }

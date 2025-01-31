@@ -64,6 +64,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHl0YW5pZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/QuizPlay/Start.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVpelBsYXlcU3RhcnQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Quiz/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVpelxDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -84,10 +88,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVpelxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Quiz/Start.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVpelxTdGFydC5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
 [E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -96,40 +96,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Uzytkownik/Create.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXp5dGtvd25pa1xDcmVhdGUuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Uzytkownik/Delete.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXp5dGtvd25pa1xEZWxldGUuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Uzytkownik/Details.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXp5dGtvd25pa1xEZXRhaWxzLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Uzytkownik/Edit.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXp5dGtvd25pa1xFZGl0LmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Uzytkownik/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXp5dGtvd25pa1xJbmRleC5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Wynik/Create.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV3luaWtcQ3JlYXRlLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Wynik/Delete.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV3luaWtcRGVsZXRlLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Wynik/Details.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV3luaWtcRGV0YWlscy5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Wynik/Edit.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV3luaWtcRWRpdC5jc2h0bWw=
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Wynik/BrakWyniku.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV3luaWtcQnJha1d5bmlrdS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Wynik/Index.cshtml]

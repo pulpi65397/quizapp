@@ -10,121 +10,105 @@ using QuizApp.Models;
 
 namespace QuizApp.Controllers
 {
-    public class PytanieController : Controller
+    public class OdpowiedzController : Controller
     {
         private readonly QuizAppContext _context;
 
-        public PytanieController(QuizAppContext context)
+        public OdpowiedzController(QuizAppContext context)
         {
             _context = context;
         }
 
-        // GET: Pytanie
+        // GET: Odpowiedz
         public async Task<IActionResult> Index()
         {
-              return _context.Pytanie != null ? 
-                          View(await _context.Pytanie.ToListAsync()) :
-                          Problem("Entity set 'QuizAppContext.Pytanie'  is null.");
+            var quizAppContext = _context.Odpowiedz.Include(o => o.Pytanie);
+            return View(await quizAppContext.ToListAsync());
         }
 
-        // GET: Pytanie/Details/5
+        // GET: Odpowiedz/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.Pytanie == null)
+            if (id == null || _context.Odpowiedz == null)
             {
                 return NotFound();
             }
 
-            var pytanie = await _context.Pytanie
+            var odpowiedz = await _context.Odpowiedz
+                .Include(o => o.Pytanie)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (pytanie == null)
+            if (odpowiedz == null)
             {
                 return NotFound();
             }
 
-            return View(pytanie);
+            return View(odpowiedz);
         }
 
+        // GET: Odpowiedz/Create
         public IActionResult Create()
         {
-            var pytanie = new Pytanie();
-            pytanie.Odpowiedzi = new List<Odpowiedz>()
-    {
-        new Odpowiedz(),
-        new Odpowiedz(),
-        new Odpowiedz(),
-        new Odpowiedz()
-    };
-
-            // Pobieramy quizy z bazy danych za pomocą _context
-            var quizy = _context.Quiz.ToList();
-
-            // Tworzymy listę SelectListItem z tytułami quizów
-            var quizySelectList = quizy.Select(q => new SelectListItem { Value = q.Id.ToString(), Text = q.Tytul }).ToList();
-
-            // Przekazujemy listę quizów do widoku za pomocą ViewBag
-            ViewBag.Quizy = quizySelectList;
-
-            return View(pytanie);
+            ViewData["PytanieId"] = new SelectList(_context.Pytanie, "Id", "Id");
+            return View();
         }
 
-        // POST: Pytanie/Create
+        // POST: Odpowiedz/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Tekst,QuizId")] Pytanie pytanie)
+        public async Task<IActionResult> Create([Bind("Tekst,CzyPoprawna,PytanieId")] Odpowiedz odpowiedz)
         {
-            ModelState.Remove("Quiz");
+            ModelState.Remove("Pytanie");
             if (ModelState.IsValid)
             {
-                _context.Add(pytanie);
+                _context.Add(odpowiedz);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-
-            return View(pytanie);
+            ViewData["PytanieId"] = new SelectList(_context.Pytanie, "Id", "Id", odpowiedz.PytanieId);
+            return View(odpowiedz);
         }
 
-        // GET: Pytanie/Edit/5
+        // GET: Odpowiedz/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null || _context.Pytanie == null)
+            if (id == null || _context.Odpowiedz == null)
             {
                 return NotFound();
             }
 
-            var pytanie = await _context.Pytanie.FindAsync(id);
-            if (pytanie == null)
+            var odpowiedz = await _context.Odpowiedz.FindAsync(id);
+            if (odpowiedz == null)
             {
                 return NotFound();
             }
-            ViewBag.Quizy = new SelectList(_context.Quiz.ToList(), "Id"); // Dodajemy listę quizów do ViewBag
-            return View(pytanie);
+            ViewData["PytanieId"] = new SelectList(_context.Pytanie, "Id", "Id", odpowiedz.PytanieId);
+            return View(odpowiedz);
         }
 
-        // POST: Pytanie/Edit/5
+        // POST: Odpowiedz/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Tekst,Odpowiedzi,QuizId")] Pytanie pytanie)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Tekst,CzyPoprawna,PytanieId")] Odpowiedz odpowiedz)
         {
-            if (id != pytanie.Id)
+            if (id != odpowiedz.Id)
             {
                 return NotFound();
             }
-            ModelState.Remove("Quiz");
+            ModelState.Remove("Pojazd");
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(pytanie);
+                    _context.Update(odpowiedz);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PytanieExists(pytanie.Id))
+                    if (!OdpowiedzExists(odpowiedz.Id))
                     {
                         return NotFound();
                     }
@@ -135,49 +119,51 @@ namespace QuizApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(pytanie);
+            ViewData["PytanieId"] = new SelectList(_context.Pytanie, "Id", "Id", odpowiedz.PytanieId);
+            return View(odpowiedz);
         }
 
-        // GET: Pytanie/Delete/5
+        // GET: Odpowiedz/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.Pytanie == null)
+            if (id == null || _context.Odpowiedz == null)
             {
                 return NotFound();
             }
 
-            var pytanie = await _context.Pytanie
+            var odpowiedz = await _context.Odpowiedz
+                .Include(o => o.Pytanie)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (pytanie == null)
+            if (odpowiedz == null)
             {
                 return NotFound();
             }
 
-            return View(pytanie);
+            return View(odpowiedz);
         }
 
-        // POST: Pytanie/Delete/5
+        // POST: Odpowiedz/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.Pytanie == null)
+            if (_context.Odpowiedz == null)
             {
-                return Problem("Entity set 'QuizAppContext.Pytanie'  is null.");
+                return Problem("Entity set 'QuizAppContext.Odpowiedz'  is null.");
             }
-            var pytanie = await _context.Pytanie.FindAsync(id);
-            if (pytanie != null)
+            var odpowiedz = await _context.Odpowiedz.FindAsync(id);
+            if (odpowiedz != null)
             {
-                _context.Pytanie.Remove(pytanie);
+                _context.Odpowiedz.Remove(odpowiedz);
             }
             
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool PytanieExists(int id)
+        private bool OdpowiedzExists(int id)
         {
-          return (_context.Pytanie?.Any(e => e.Id == id)).GetValueOrDefault();
+          return (_context.Odpowiedz?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

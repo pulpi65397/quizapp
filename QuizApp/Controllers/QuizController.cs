@@ -56,12 +56,29 @@ namespace QuizApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Tytul,CzasTrwania")] Quiz quiz)
+        public async Task<IActionResult> Create([Bind("Tytul,CzasTrwania, Pytania")] Quiz quiz)
         {
+            
             if (ModelState.IsValid)
             {
                 _context.Add(quiz);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // Zapisujemy najpierw quiz, aby uzyskać jego ID
+
+                foreach (var pytanie in quiz.Pytania)
+                {
+                    pytanie.QuizId = quiz.Id; // Ustawiamy QuizId dla pytania
+                    _context.Add(pytanie);
+                    await _context.SaveChangesAsync(); // Zapisujemy pytanie, aby uzyskać jego ID
+
+                    foreach (var odpowiedz in pytanie.Odpowiedzi)
+                    {
+                        odpowiedz.PytanieId = pytanie.Id; // Ustawiamy PytanieId dla odpowiedzi
+                        _context.Add(odpowiedz);
+                    }
+                }
+
+                await _context.SaveChangesAsync(); // Zapisujemy odpowiedzi
+
                 return RedirectToAction(nameof(Index));
             }
             return View(quiz);
