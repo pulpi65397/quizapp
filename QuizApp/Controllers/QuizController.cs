@@ -19,15 +19,72 @@ namespace QuizApp.Controllers
             _context = context;
         }
 
-        // GET: Quiz
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string quizDziedzina, string searchString, string sortOrder)
         {
-              return _context.Quiz != null ? 
-                          View(await _context.Quiz.ToListAsync()) :
-                          Problem("Entity set 'QuizAppContext.Quiz'  is null.");
+            if (_context.Quiz == null)
+            {
+                return Problem("Entity set 'QuizAppContext.Quiz' is null.");
+            }
+
+            IQueryable<string> dziedzinaQuery = from q in _context.Quiz
+                                                orderby q.Dziedzina
+                                                select q.Dziedzina;
+
+            var quizy = from q in _context.Quiz
+                        select q;
+
+            // Wyszukiwanie (z EF.Functions.Like)
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                quizy = quizy.Where(q => EF.Functions.Like(q.Tytul, "%" + searchString + "%") ||
+                                         EF.Functions.Like(q.Dziedzina, "%" + searchString + "%"));
+            }
+
+            // Filtrowanie po dziedzinie
+            if (!string.IsNullOrEmpty(quizDziedzina))
+            {
+                quizy = quizy.Where(x => x.Dziedzina == quizDziedzina);
+            }
+
+            // Sortowanie
+            ViewData["TytulSortParm"] = String.IsNullOrEmpty(sortOrder) ? "tytul_desc" : "";
+            ViewData["CzasTrwaniaSortParm"] = sortOrder == "czastrwania" ? "czastrwania_desc" : "czastrwania";
+            ViewData["DziedzinaSortParm"] = sortOrder == "dziedzina" ? "dziedzina_desc" : "dziedzina";
+
+            switch (sortOrder)
+            {
+                case "tytul_desc":
+                    quizy = quizy.OrderByDescending(s => s.Tytul);
+                    break;
+                case "czastrwania":
+                    quizy = quizy.OrderBy(s => s.CzasTrwania);
+                    break;
+                case "czastrwania_desc":
+                    quizy = quizy.OrderByDescending(s => s.CzasTrwania);
+                    break;
+                case "dziedzina":
+                    quizy = quizy.OrderBy(s => s.Dziedzina);
+                    break;
+                case "dziedzina_desc":
+                    quizy = quizy.OrderByDescending(s => s.Dziedzina);
+                    break;
+                default:
+                    quizy = quizy.OrderBy(s => s.Tytul);
+                    break;
+            }
+
+            var quizDziedzinaVM = new QuizDziedzinaViewModel
+            {
+                Dziedziny = new SelectList(await dziedzinaQuery.Distinct().ToListAsync()),
+                Quizy = await quizy.ToListAsync(),
+                QuizDziedzina = quizDziedzina,
+                SearchString = searchString,
+                SortOrder = sortOrder
+            };
+
+            return View(quizDziedzinaVM);
         }
 
-        // GET: Quiz/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null || _context.Quiz == null)
@@ -36,7 +93,10 @@ namespace QuizApp.Controllers
             }
 
             var quiz = await _context.Quiz
+                .Include(q => q.Pytania) // Dodajemy Include, aby załadować pytania
+                .ThenInclude(p => p.Odpowiedzi) // I odpowiedzi do pytań
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (quiz == null)
             {
                 return NotFound();
@@ -45,47 +105,26 @@ namespace QuizApp.Controllers
             return View(quiz);
         }
 
-        // GET: Quiz/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Quiz/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Tytul,CzasTrwania, Pytania")] Quiz quiz)
+        public async Task<IActionResult> Create([Bind("Tytul,CzasTrwania,Dziedzina")] Quiz quiz) // Usunięto Pytania z Bind
         {
-
             if (ModelState.IsValid)
             {
-                // Usuń z quizu kolekcję pytań przed dodaniem quizu,
-                // aby zapobiec kaskadowemu dodaniu.
-                var pytania = quiz.Pytania;
-                quiz.Pytania = new List<Pytanie>();
-
                 _context.Add(quiz);
-                await _context.SaveChangesAsync(); // Tutaj wygenerowane quiz.Id
-
-                foreach (var pytanie in pytania)
-                {
-                    pytanie.QuizId = quiz.Id;
-                    _context.Add(pytanie);
-                    // Nie wykonuj SaveChangesAsync() w pętli – lepiej wywołać raz poza pętlą
-                }
                 await _context.SaveChangesAsync();
 
-                // Analogicznie dla odpowiedzi – ustaw PytanieId
-                // i dodaj je do kontekstu, a następnie wywołaj SaveChangesAsync()
-
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Edit), new { id = quiz.Id }); // Przekierowanie do Edit, aby dodać pytania
             }
             return View(quiz);
         }
 
-        // GET: Quiz/Edit/5
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Quiz == null)
@@ -93,7 +132,12 @@ namespace QuizApp.Controllers
                 return NotFound();
             }
 
-            var quiz = await _context.Quiz.FindAsync(id);
+            var quiz = await _context.Quiz
+                .Include(q => q.Pytania) // Załadowanie pytań
+                .ThenInclude(p => p.Odpowiedzi) // I odpowiedzi
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+
             if (quiz == null)
             {
                 return NotFound();
@@ -101,12 +145,9 @@ namespace QuizApp.Controllers
             return View(quiz);
         }
 
-        // POST: Quiz/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Tytul,CzasTrwania")] Quiz quiz)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Tytul,CzasTrwania,Dziedzina")] Quiz quiz)
         {
             if (id != quiz.Id)
             {
@@ -136,7 +177,6 @@ namespace QuizApp.Controllers
             return View(quiz);
         }
 
-        // GET: Quiz/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.Quiz == null)
@@ -154,28 +194,27 @@ namespace QuizApp.Controllers
             return View(quiz);
         }
 
-        // POST: Quiz/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             if (_context.Quiz == null)
             {
-                return Problem("Entity set 'QuizAppContext.Quiz'  is null.");
+                return Problem("Entity set 'QuizAppContext.Quiz' is null.");
             }
             var quiz = await _context.Quiz.FindAsync(id);
             if (quiz != null)
             {
                 _context.Quiz.Remove(quiz);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool QuizExists(int id)
         {
-          return (_context.Quiz?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Quiz?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }
