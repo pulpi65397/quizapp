@@ -1,0 +1,32 @@
+﻿@model QuizApp.Models.Quiz
+
+@{
+    ViewData["Title"] = "Rozpocznij quiz";
+}
+
+<h1>@Model.Tytul</h1>
+
+<form asp-action="Submit" method="post">
+    <input type="hidden" name="quizId" value="@Model.Id" />
+
+    @foreach (var pytanie in Model.Pytania)
+    {
+        <h2>@pytanie.Tekst</h2>
+
+        @foreach (var odpowiedz in pytanie.Odpowiedzi)
+        {
+            <div class="form-check">
+                <input class="form-check-input" type="radio"
+                       name="odpowiedzi[@pytanie.Id]"
+                       value="@odpowiedz.Id"
+                       id="odpowiedz-@pytanie.Id-@odpowiedz.Id">
+                <label class="form-check-label" for="odpowiedz-@pytanie.Id-@odpowiedz.Id">
+                    @odpowiedz.Tekst
+                </label>
+            </div>
+        }
+        <hr />
+    }
+
+    <button type="submit" class="btn btn-primary">Prześlij odpowiedzi</button>
+</form>

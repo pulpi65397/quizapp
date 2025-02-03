@@ -1,0 +1,40 @@
+﻿@model QuizApp.Models.Pytanie
+
+@{
+    ViewData["Title"] = "Usuń pytanie";
+}
+
+<h1>Usuń pytanie</h1>
+
+<h3>Czy na pewno chcesz usunąć to pytanie?</h3>
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Tekst)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Tekst)
+        </dd>
+        @for (int i = 0; i < Model.Odpowiedzi.Count; i++)
+        { // Poprawiona pętla
+            <dt class="col-sm-2">
+                Odpowiedź @(i + 1)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(modelItem => Model.Odpowiedzi.ElementAt(i).Tekst)
+            </dd>
+            <dt class="col-sm-2">
+                Poprawna
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(modelItem => Model.Odpowiedzi.ElementAt(i).CzyPoprawna)
+            </dd>
+        }
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Usuń" class="btn btn-danger" /> |
+        <a asp-action="Index">Powrót do listy pytań</a>
+    </form>
+</div>

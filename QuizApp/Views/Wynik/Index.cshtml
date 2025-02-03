@@ -1,0 +1,11 @@
+﻿@model QuizApp.Models.Wynik
+
+@{
+    ViewData["Title"] = "Twój wynik";
+}
+
+<h2>Twój wynik</h2>
+
+<p>Twoje punkty: @ViewData["Punkty"]</p>
+
+<a asp-action="Index" asp-controller="Quiz">Powrót do quizów</a>

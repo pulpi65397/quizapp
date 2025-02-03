@@ -1,0 +1,61 @@
+﻿@model QuizApp.Models.Pytanie
+
+@{
+    ViewData["Title"] = "Utwórz pytanie";
+}
+
+<h1>Utwórz pytanie</h1>
+
+<form asp-action="Create">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="Tekst" class="control-label">Treść pytania</label>
+        <input asp-for="Tekst" class="form-control" />
+        <span asp-validation-for="Tekst" class="text-danger"></span>
+    </div>
+    
+    <div id="odpowiedzi-container">
+        <div class="odpowiedz-group">
+            <label>Odpowiedź 1</label>
+            <input type="text" name="Odpowiedzi[0].Tekst" class="form-control" />
+            <input type="checkbox" name="Odpowiedzi[0].CzyPoprawna" class="form-check-input" />
+            <label class="form-check-label">Poprawna</label>
+        </div>
+        <div class="odpowiedz-group">
+            <label>Odpowiedź 2</label>
+            <input type="text" name="Odpowiedzi[1].Tekst" class="form-control" />
+            <input type="checkbox" name="Odpowiedzi[1].CzyPoprawna" class="form-check-input" />
+            <label class="form-check-label">Poprawna</label>
+        </div>
+        <div class="odpowiedz-group">
+            <label>Odpowiedź 3</label>
+            <input type="text" name="Odpowiedzi[2].Tekst" class="form-control" />
+            <input type="checkbox" name="Odpowiedzi[2].CzyPoprawna" class="form-check-input" />
+            <label class="form-check-label">Poprawna</label>
+        </div>
+        <div class="odpowiedz-group">
+            <label>Odpowiedź 4</label>
+            <input type="text" name="Odpowiedzi[3].Tekst" class="form-control" />
+            <input type="checkbox" name="Odpowiedzi[3].CzyPoprawna" class="form-check-input" />
+            <label class="form-check-label">Poprawna</label>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label asp-for="QuizId" class="control-label">Wybierz quiz</label>
+        <select asp-for="QuizId" class="form-control" asp-items="@ViewBag.Quizy">
+            <option value="">-- Wybierz quiz --</option>
+        </select>
+        <span asp-validation-for="QuizId" class="text-danger"></span>
+    </div>
+   
+    <div class="form-group">
+        <input type="submit" value="Utwórz" class="btn btn-primary" />
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

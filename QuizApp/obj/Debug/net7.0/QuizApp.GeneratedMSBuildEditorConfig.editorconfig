@@ -1,0 +1,117 @@
+is_global = true
+build_property.TargetFramework = net7.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = QuizApp
+build_property.RootNamespace = QuizApp
+build_property.ProjectDir = E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\
+build_property.RazorLangVersion = 7.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp
+build_property._RazorSourceGeneratorDebug = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Home/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Home/Privacy.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Odpowiedz/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2Rwb3dpZWR6XENyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Odpowiedz/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2Rwb3dpZWR6XERlbGV0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Odpowiedz/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2Rwb3dpZWR6XERldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Odpowiedz/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2Rwb3dpZWR6XEVkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Odpowiedz/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT2Rwb3dpZWR6XEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Pytanie/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHl0YW5pZVxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Pytanie/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHl0YW5pZVxEZWxldGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Pytanie/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHl0YW5pZVxEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Pytanie/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHl0YW5pZVxFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Pytanie/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHl0YW5pZVxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/QuizPlay/Start.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVpelBsYXlcU3RhcnQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Quiz/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVpelxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Quiz/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVpelxEZWxldGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Quiz/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVpelxEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Quiz/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVpelxFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Quiz/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUXVpelxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Shared/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Shared/_ValidationScriptsPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Wynik/BrakWyniku.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV3luaWtcQnJha1d5bmlrdS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Wynik/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcV3luaWtcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/_ViewImports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = b-5pfx37we21
