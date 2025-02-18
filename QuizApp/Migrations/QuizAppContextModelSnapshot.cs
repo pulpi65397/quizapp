@@ -282,6 +282,10 @@ namespace QuizApp.Migrations
                     b.Property<int>("CzasTrwania")
                         .HasColumnType("int");
 
+                    b.Property<string>("Dziedzina")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Tytul")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -299,6 +303,9 @@ namespace QuizApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<TimeSpan>("CzasUkonczenia")
+                        .HasColumnType("time");
+
                     b.Property<int>("Punkty")
                         .HasColumnType("int");
 
@@ -306,11 +313,13 @@ namespace QuizApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("UzytkownikId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("QuizId");
+
+                    b.HasIndex("UzytkownikId");
 
                     b.ToTable("Wynik");
                 });
@@ -396,7 +405,13 @@ namespace QuizApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ApplicationUser", "Uzytkownik")
+                        .WithMany()
+                        .HasForeignKey("UzytkownikId");
+
                     b.Navigation("Quiz");
+
+                    b.Navigation("Uzytkownik");
                 });
 
             modelBuilder.Entity("QuizApp.Models.Pytanie", b =>

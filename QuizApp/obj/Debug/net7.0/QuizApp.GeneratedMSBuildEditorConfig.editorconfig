@@ -92,8 +92,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Shared/_Ranking.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9SYW5raW5nLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Test/Wyniki.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVzdFxXeW5pa2kuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Wynik/BrakWyniku.cshtml]

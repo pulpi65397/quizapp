@@ -1,4 +1,5 @@
 ﻿@model QuizApp.Models.Quiz
+@using System.Security.Claims
 
 @{
     ViewData["Title"] = "Rozpocznij quiz";
@@ -6,27 +7,231 @@
 
 <h1>@Model.Tytul</h1>
 
-<form asp-action="Submit" method="post">
-    <input type="hidden" name="quizId" value="@Model.Id" />
+<div id="quiz-container">
+    <div id="timer">30</div>
+    <div id="question-panel">
+        <h2 id="question-text"></h2>
+        <div id="answers-container"></div>
+    </div>
+    <button type="button" id="submit-button" class="btn btn-primary">Prześlij odpowiedź</button>
+</div>
 
-    @foreach (var pytanie in Model.Pytania)
-    {
-        <h2>@pytanie.Tekst</h2>
+<div id="ranking-container" style="display: none;">
+    @await Html.PartialAsync("_Ranking", ViewData["RankingViewModel"])
+</div>
 
-        @foreach (var odpowiedz in pytanie.Odpowiedzi)
-        {
-            <div class="form-check">
-                <input class="form-check-input" type="radio"
-                       name="odpowiedzi[@pytanie.Id]"
-                       value="@odpowiedz.Id"
-                       id="odpowiedz-@pytanie.Id-@odpowiedz.Id">
-                <label class="form-check-label" for="odpowiedz-@pytanie.Id-@odpowiedz.Id">
-                    @odpowiedz.Tekst
-                </label>
-            </div>
-        }
-        <hr />
+<link href="https://fonts.cdnfonts.com/css/seven-segment" rel="stylesheet">
+<style>
+    #quiz-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
-    <button type="submit" class="btn btn-primary">Prześlij odpowiedzi</button>
-</form>
+    #timer {
+        font-family: 'Seven Segment', sans-serif;
+        font-size: 48px;
+        color: #0f0;
+        background-color: #000;
+        padding: 10px;
+        border-radius: 5px;
+        text-align: center;
+        width: 80px;
+        margin: 0 auto;
+        text-shadow: 0 0 10px #0f0;
+    }
+
+        #timer.red {
+            color: red;
+            text-shadow: 0 0 10px red;
+        }
+
+    #question-panel {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    #answers-container {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-check {
+        margin-bottom: 10px;
+    }
+
+    #submit-button {
+        margin-top: 20px;
+    }
+
+    #ranking-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+    }
+
+    #ranking-list {
+        list-style: none;
+        padding: 0;
+    }
+
+        #ranking-list li {
+            margin-bottom: 5px;
+        }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+<script>
+    $(document).ready(function () {
+        const quizId = @Model.Id;
+        const uzytkownikId = "@User.FindFirstValue(ClaimTypes.NameIdentifier)";
+        const uzytkownikNick = "@User.Identity.Name";
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/quizHub")
+            .build();
+
+        let pytania = @Html.Raw(Json.Serialize(Model.Pytania));
+        let aktualnePytanieIndex = 0;
+        let punkty = 0;
+        let timerInterval;
+
+        function wyswietlPytanie(pytanie) {
+            $("#question-text").text(pytanie.tekst);
+            $("#answers-container").empty();
+            pytanie.odpowiedzi.forEach(odpowiedz => {
+                const odpowiedzHtml = `
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="odpowiedz" value="${odpowiedz.id}" id="odpowiedz-${odpowiedz.id}">
+                                <label class="form-check-label" for="odpowiedz-${odpowiedz.id}">${odpowiedz.tekst}</label>
+                            </div>`;
+                $("#answers-container").append(odpowiedzHtml);
+            });
+        }
+
+        function startTimer(seconds) {
+            let timeLeft = seconds;
+            $("#timer").text(timeLeft);
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                $("#timer").text(timeLeft);
+                if (timeLeft <= 5) {
+                    $("#timer").css("color", "red"); // Zmieniamy kolor na czerwony
+                } else {
+                    $("#timer").css("color", "#0f0"); // Przywracamy domyślny kolor (neonowy zielony)
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    $("#submit-button").click();
+                }
+            }, 1000);
+        }
+
+        connection.on("UzytkownikDolaczyl", (uzytkownikId, uzytkownikNick) => {
+            console.log("Użytkownik " + uzytkownikNick + " dołączył.");
+        });
+
+        connection.on("RozpocznijQuiz", () => {
+            wyswietlPytanie(pytania[aktualnePytanieIndex]);
+            startTimer(30);
+        });
+
+        connection.on("PokazPytanie", (pytanie) => {
+            wyswietlPytanie(pytanie);
+            startTimer(30);
+        });
+        connection.on("PytanieZakonczone", async () => {
+            const ranking = await connection.invoke("PobierzRanking", quizId);
+
+            console.log("Dane rankingu (klient):", ranking); // Logowanie danych
+
+            $("#ranking-list").empty();
+            if (ranking && Array.isArray(ranking)) {
+                ranking.forEach(user => {
+                    console.log("Użytkownik (klient):", user); // Logowanie każdego użytkownika
+                    if (user && user.Nick && user.Punkty) { // Sprawdzenie, czy istnieją właściwości Nick i Punkty
+                        const listItem = $("<li>").text(`${user.Nick}: ${user.Punkty}`);
+                        $("#ranking-list").append(listItem);
+                    } else {
+                        console.error("Nieprawidłowe dane użytkownika:", user);
+                    }
+                });
+            } else {
+                console.error("Nieprawidłowe dane rankingu:", ranking);
+            }
+
+            $("#rankingModal").modal("show");
+        });
+
+        connection.on("AktualizujRanking", (ranking) => {
+            $("#ranking-list").empty();
+            ranking.forEach(user => {
+                const listItem = $("<li>").text(`${user.Nick}: ${user.Punkty}`);
+                $("#ranking-list").append(listItem);
+            });
+        });
+
+        connection.start()
+            .then(() => {
+                console.log("Połączono z Hubem.");
+
+                connection.invoke("DołączDoQuizu", quizId, uzytkownikId, uzytkownikNick);
+            })
+            .catch(err => console.error("Błąd połączenia: " + err));
+
+        $(document).on("click", "#submit-button", function () {
+            if (connection.state === signalR.HubConnectionState.Connected) {
+                const wybranaOdpowiedz = $("input[name='odpowiedz']:checked").val();
+                const czasOdpowiedzi = 30 - parseInt($("#timer").text());
+
+                if (wybranaOdpowiedz) {
+                    clearInterval(timerInterval);
+
+                    connection.invoke("OdpowiedzNaPytanie", quizId, pytania[aktualnePytanieIndex].id, parseInt(wybranaOdpowiedz), czasOdpowiedzi * 1000, uzytkownikId)
+                        .then(() => {
+                            aktualnePytanieIndex++;
+                            if (aktualnePytanieIndex < pytania.length) {
+                                wyswietlPytanie(pytania[aktualnePytanieIndex]);
+                                startTimer(30);
+                            } else {
+                                console.log("Koniec quizu!");
+                                window.location.href = '@Url.Action("Wynik", "QuizPlay", new { quizId = @Model.Id })' + '&punkty=' + punkty;
+                            }
+                        })
+                        .catch(err => console.error("Błąd odpowiedzi: " + err));
+                }
+            } else {
+                console.error("Połączenie SignalR nie jest aktywne.");
+            }
+
+        });
+
+        $("#kontynuuj-przycisk").click(function () {
+            $("#ranking-container").hide();
+            if (aktualnePytanieIndex < pytania.length) {
+                wyswietlPytanie(pytania[aktualnePytanieIndex]);
+                startTimer(30);
+            } else {
+                console.log("Koniec quizu!");
+                window.location.href = '@Url.Action("Wynik", "QuizPlay", new { quizId = @Model.Id })' + '&punkty=' + punkty;
+            }
+        });
+
+        if (pytania && pytania.length > 0) {
+            wyswietlPytanie(pytania[aktualnePytanieIndex]);
+            startTimer(30);
+        } else {
+            console.error("Brak pytań do wyświetlenia!");
+        }
+    });
+</script>

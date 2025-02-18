@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-
+using System.Text.Json.Serialization;
 namespace QuizApp.Models
 {
     public class Odpowiedz
@@ -10,6 +10,7 @@ namespace QuizApp.Models
 
         public int PytanieId { get; set; }
         [ValidateNever]
+        [JsonIgnore]
         public Pytanie Pytanie { get; set; }
     }
 }

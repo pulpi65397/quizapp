@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 namespace QuizApp.Models
 {
     public class Pytanie
@@ -10,6 +11,7 @@ namespace QuizApp.Models
         
         public int QuizId { get; set; }
         [ValidateNever]
+        [JsonIgnore]
         public Quiz Quiz { get; set; }
     }
 }

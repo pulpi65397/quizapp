@@ -8,10 +8,10 @@ namespace QuizApp.Models
         [Required]
         public int QuizId { get; set; }
         public string? UzytkownikId { get; set; }  // Powinna być nullable
-
         public Quiz Quiz { get; set; }
-
         public int Punkty { get; set; }
+        public ApplicationUser Uzytkownik { get; set; }
+        public TimeSpan CzasUkonczenia { get; set; }
 
     }
 }

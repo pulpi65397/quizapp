@@ -6,19 +6,21 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using System;
 
 namespace QuizApp.Controllers
 {
     public class QuizPlayController : Controller
     {
         private readonly QuizAppContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public QuizPlayController(QuizAppContext context)
+        public QuizPlayController(QuizAppContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        // GET: QuizPlay/Start/5
         public async Task<IActionResult> Start(int? id)
         {
             if (id == null)
@@ -30,105 +32,136 @@ namespace QuizApp.Controllers
                 .Include(q => q.Pytania)
                     .ThenInclude(p => p.Odpowiedzi)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (quiz == null)
             {
                 return NotFound();
             }
+            var rankingViewModel = new RankingViewModel { Uzytkownicy = new List<RankingUzytkownika>() };
+
+            // Przekazujemy model quizu do widoku głównego, a pusty model rankingu do Partial View
+            ViewData["RankingViewModel"] = rankingViewModel; // Alternatywnie, możesz użyć ViewBag
 
             return View(quiz);
         }
 
-        // POST: QuizPlay/Submit
         [HttpPost]
-        public async Task<IActionResult> Submit(int quizId, Dictionary<int, int> odpowiedzi)
+        public async Task<IActionResult> Sprawdz(int quizId, int pytanieId, int odpowiedzId, long czasOdpowiedzi)
         {
-            // Obliczanie punktów na podstawie odpowiedzi użytkownika
-            int punkty = await ObliczPunkty(quizId, odpowiedzi);
+            var pytanie = await _context.Pytanie
+                .Include(p => p.Odpowiedzi)
+                .FirstOrDefaultAsync(p => p.Id == pytanieId && p.QuizId == quizId);
 
-            // Zapisanie wyniku do bazy danych (bez powiązania z użytkownikiem)
+            if (pytanie == null)
+            {
+                return NotFound();
+            }
+
+            var poprawnaOdpowiedz = pytanie.Odpowiedzi.Any(o => o.Id == odpowiedzId && o.CzyPoprawna);
+
+            int punktyZaOdpowiedz = 0;
+            if (poprawnaOdpowiedz)
+            {
+                int maxPunkty = 1000;
+                long maxCzas = 30000;
+
+                punktyZaOdpowiedz = (int)(maxPunkty * (1 - (double)czasOdpowiedzi / maxCzas));
+                if (punktyZaOdpowiedz < 0) punktyZaOdpowiedz = 0;
+            }
+
+            return Json(new { poprawna = poprawnaOdpowiedz, punkty = punktyZaOdpowiedz });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Submit(int quizId, Dictionary<int, Tuple<int, long>> odpowiedzi)
+        {
+            int punkty = 0;
+            foreach (var odpowiedz in odpowiedzi)
+            {
+                var pytanie = await _context.Pytanie
+                    .Include(p => p.Odpowiedzi)
+                    .FirstOrDefaultAsync(p => p.Id == odpowiedz.Key && p.QuizId == quizId);
+
+                if (pytanie != null)
+                {
+                    var poprawnaOdpowiedz = pytanie.Odpowiedzi
+                        .FirstOrDefault(o => o.Id == odpowiedz.Value.Item1 && o.CzyPoprawna);
+
+                    if (poprawnaOdpowiedz != null)
+                    {
+                        int maxPunkty = 1000;
+                        long maxCzas = 30000;
+                        long czasOdpowiedzi = odpowiedz.Value.Item2;
+
+                        punkty += (int)(maxPunkty * (1 - (double)czasOdpowiedzi / maxCzas));
+                        if (punkty < 0) punkty = 0;
+                    }
+                }
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                // Obsługa gościa -  alternatywnie można użyć anonimowych identyfikatorów
+                var guestUser = await _userManager.FindByNameAsync("guest");
+
+                if (guestUser == null)
+                {
+                    guestUser = new ApplicationUser { UserName = "guest", Nick = "guest" };
+                    var result = await _userManager.CreateAsync(guestUser, "Haslo123"); // Zmień na silne hasło w produkcji!
+                    if (!result.Succeeded)
+                    {
+                        return BadRequest(result.Errors);
+                    }
+                }
+                userId = guestUser.Id;
+            }
+
+
             var wynik = new Wynik
             {
                 QuizId = quizId,
-                UzytkownikId = null,  // Jeśli nie jest zalogowany, wynik nie będzie przypisany do konkretnego użytkownika
-                Punkty = punkty
+                UzytkownikId = userId,
+                Punkty = punkty,
+                CzasUkonczenia = TimeSpan.Zero // Dodaj logikę zapisu czasu ukończenia quizu
             };
 
             _context.Wynik.Add(wynik);
             await _context.SaveChangesAsync();
 
-            // Przekierowanie do akcji "Index" w kontrolerze "Wynik" z quizId i punktami
-            return RedirectToAction("Index", "Wynik", new { quizId = quizId, punkty = punkty });
+            return RedirectToAction("Wynik", new { quizId = quizId, punkty = punkty });
         }
 
-        // Metoda obliczająca punkty
-        public async Task<int> ObliczPunkty(int quizId, Dictionary<int, int> odpowiedzi)
-        {
-            int punkty = 0;
 
-            // Pobranie pytań i odpowiedzi z bazy danych
-            var pytania = await _context.Pytanie
-                .Include(p => p.Odpowiedzi)
-                .Where(p => p.QuizId == quizId)
-                .ToListAsync();
-
-            // Sprawdzanie odpowiedzi użytkownika
-            foreach (var odpowiedz in odpowiedzi)
-            {
-                var pytanie = pytania.FirstOrDefault(p => p.Id == odpowiedz.Key);
-                if (pytanie != null)
-                {
-                    // Znajdź odpowiedź na pytanie
-                    var poprawnaOdpowiedz = pytanie.Odpowiedzi
-                        .FirstOrDefault(o => o.Id == odpowiedz.Value && o.CzyPoprawna);
-
-                    if (poprawnaOdpowiedz != null)
-                    {
-                        punkty++; // Jeśli odpowiedź jest poprawna, dodaj punkt
-                    }
-                }
-            }
-
-            return punkty;
-        }
-
-        // GET: QuizPlay/Wynik/5
-        public async Task<IActionResult> Wynik(int quizId)
+        public async Task<IActionResult> Wynik(int quizId, int punkty)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Jeżeli użytkownik nie jest zalogowany, przypisz "guest"
             if (string.IsNullOrEmpty(userId))
             {
-                // Sprawdzenie, czy użytkownik "guest" istnieje
-                var guestUser = await _context.Users.FirstOrDefaultAsync(u => u.UserName == "guest");
-
-                // Jeżeli nie istnieje, utwórz go
+                var guestUser = await _userManager.FindByNameAsync("guest");
                 if (guestUser == null)
                 {
                     guestUser = new ApplicationUser
-                    {
-                        UserName = "guest",
-                        Nick = "guest"
-                    };
+                    {
+                        UserName = "guest",
+                        Nick = "guest"
+                    };
                     _context.Users.Add(guestUser);
                     await _context.SaveChangesAsync();
                 }
-
                 userId = guestUser.Id;
             }
 
-            // Pobierz wynik użytkownika dla danego quizu
             var wynik = await _context.Wynik
                 .FirstOrDefaultAsync(w => w.QuizId == quizId && w.UzytkownikId == userId);
 
-            if (wynik == null)
-            {
-                // Jeżeli wynik nie istnieje, wyświetl widok BrakWyniku
-                return View("BrakWyniku");
-            }
+            ViewBag.Punkty = punkty;
 
-            // Zwróć widok z wynikiem, który znajduje się w folderze Views/Wynik/Index.cshtml
-            return View("~/Views/Wynik/Index.cshtml", wynik);
+            return View("~/Views/Wynik/Index.cshtml");
         }
+
+
     }
 }
