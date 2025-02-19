@@ -112,14 +112,30 @@ namespace QuizApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Tytul,CzasTrwania,Dziedzina")] Quiz quiz) // Usunięto Pytania z Bind
+        public async Task<IActionResult> Create([Bind("Tytul,CzasTrwania,Dziedzina, Pytania")] Quiz quiz)
         {
             if (ModelState.IsValid)
             {
+                // Usuń z quizu kolekcję pytań przed dodaniem quizu,
+                // aby zapobiec kaskadowemu dodaniu.
+                var pytania = quiz.Pytania;
+                quiz.Pytania = new List<Pytanie>();
+
                 _context.Add(quiz);
+                await _context.SaveChangesAsync(); // Tutaj wygenerowane quiz.Id
+
+                foreach (var pytanie in pytania)
+                {
+                    pytanie.QuizId = quiz.Id;
+                    _context.Add(pytanie);
+                    // Nie wykonuj SaveChangesAsync() w pętli – lepiej wywołać raz poza pętlą
+                }
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Edit), new { id = quiz.Id }); // Przekierowanie do Edit, aby dodać pytania
+                // Analogicznie dla odpowiedzi – ustaw PytanieId
+                // i dodaj je do kontekstu, a następnie wywołaj SaveChangesAsync()
+
+                return RedirectToAction(nameof(Index));
             }
             return View(quiz);
         }
