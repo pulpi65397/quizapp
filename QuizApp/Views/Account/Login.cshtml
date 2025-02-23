@@ -5,12 +5,12 @@
 <form asp-action="Login" method="post">
     <div asp-validation-summary="All"></div>
     <div>
-        <label asp-for="UserName"></label>
+        <label asp-for="UserName">Login</label>
         <input asp-for="UserName" />
         <span asp-validation-for="UserName"></span>
     </div>
     <div>
-        <label asp-for="Password"></label>
+        <label asp-for="Password">Hasło</label>
         <input asp-for="Password" />
         <span asp-validation-for="Password"></span>
     </div>
