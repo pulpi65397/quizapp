@@ -1,13 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using QuizApp.Resources;
+using System.ComponentModel.DataAnnotations;
+
 namespace QuizApp.Models
 {
     public class LoginViewModel
     {
-        [Required]
-        [MaxLength(50)]
-        public string UserName { get; set; } // Używamy UserName
+        [Required(ErrorMessageResourceType = typeof(ValidationMessages), ErrorMessageResourceName = "RequiredAttribute_ValidationError")]
+        [MaxLength(50, ErrorMessageResourceType = typeof(ValidationMessages), ErrorMessageResourceName = "MaxLengthAttribute_ValidationError")]
+        public string UserName { get; set; }
 
-        [Required]
+        [Required(ErrorMessageResourceType = typeof(ValidationMessages), ErrorMessageResourceName = "RequiredAttribute_ValidationError")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
