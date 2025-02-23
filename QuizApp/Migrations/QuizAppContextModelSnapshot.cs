@@ -291,6 +291,31 @@ namespace QuizApp.Migrations
                     b.ToTable("Quiz");
                 });
 
+            modelBuilder.Entity("QuizApp.Models.QuizToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ExpirationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("QuizId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuizId");
+
+                    b.ToTable("QuizToken");
+                });
+
             modelBuilder.Entity("QuizApp.Models.Wynik", b =>
                 {
                     b.Property<int>("Id")
@@ -398,6 +423,17 @@ namespace QuizApp.Migrations
                 {
                     b.HasOne("QuizApp.Models.Quiz", "Quiz")
                         .WithMany("Pytania")
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Quiz");
+                });
+
+            modelBuilder.Entity("QuizApp.Models.QuizToken", b =>
+                {
+                    b.HasOne("QuizApp.Models.Quiz", "Quiz")
+                        .WithMany()
                         .HasForeignKey("QuizId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

@@ -1,12 +1,14 @@
 ﻿@model QuizApp.Models.Quiz
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegóły quizu";
 }
 
 <h1>Szczegóły quizu</h1>
 
 <div>
+    <h4>Quiz</h4>
+    <hr />
     <dl class="row">
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Tytul)
@@ -20,10 +22,44 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.CzasTrwania)
         </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Dziedzina)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Dziedzina)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Pytania)
+        </dt>
+        <dd class="col-sm-10">
+            @foreach (var pytanie in Model.Pytania)
+            {
+                <p>@pytanie.Tekst</p>
+            }
+        </dd>
     </dl>
 </div>
-
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edytuj</a> |
-    <a asp-action="Index">Powrót do listy quizów</a>
+    <button id="generateTokenButton" class="btn btn-primary">Generuj token</button>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#generateTokenButton').click(function () {
+                $.ajax({
+                    url: '/Quiz/GenerateToken?quizId=@Model.Id',
+                    type: 'GET',
+                    dataType: 'json', // Dodaj dataType: 'json'
+                    success: function (data) {
+                        console.log(data); // Sprawdź, co jest zwracane
+                        window.location.href = '/Quiz/Token?token=' + data.token;
+                    },
+                    error: function () {
+                        alert('Wystąpił błąd podczas generowania tokenu.');
+                    }
+                });
+            });
+        });
+    </script>
+}

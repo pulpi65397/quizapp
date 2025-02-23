@@ -37,7 +37,7 @@ namespace QuizApp.Controllers
             if (!string.IsNullOrEmpty(searchString))
             {
                 quizy = quizy.Where(q => EF.Functions.Like(q.Tytul, "%" + searchString + "%") ||
-                                         EF.Functions.Like(q.Dziedzina, "%" + searchString + "%"));
+                                            EF.Functions.Like(q.Dziedzina, "%" + searchString + "%"));
             }
 
             // Filtrowanie po dziedzinie
@@ -93,8 +93,8 @@ namespace QuizApp.Controllers
             }
 
             var quiz = await _context.Quiz
-                .Include(q => q.Pytania) // Dodajemy Include, aby załadować pytania
-                .ThenInclude(p => p.Odpowiedzi) // I odpowiedzi do pytań
+                .Include(q => q.Pytania)
+                .ThenInclude(p => p.Odpowiedzi)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (quiz == null)
@@ -116,30 +116,23 @@ namespace QuizApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Usuń z quizu kolekcję pytań przed dodaniem quizu,
-                // aby zapobiec kaskadowemu dodaniu.
                 var pytania = quiz.Pytania;
                 quiz.Pytania = new List<Pytanie>();
 
                 _context.Add(quiz);
-                await _context.SaveChangesAsync(); // Tutaj wygenerowane quiz.Id
+                await _context.SaveChangesAsync();
 
                 foreach (var pytanie in pytania)
                 {
                     pytanie.QuizId = quiz.Id;
                     _context.Add(pytanie);
-                    // Nie wykonuj SaveChangesAsync() w pętli – lepiej wywołać raz poza pętlą
                 }
                 await _context.SaveChangesAsync();
-
-                // Analogicznie dla odpowiedzi – ustaw PytanieId
-                // i dodaj je do kontekstu, a następnie wywołaj SaveChangesAsync()
 
                 return RedirectToAction(nameof(Index));
             }
             return View(quiz);
         }
-
 
         public async Task<IActionResult> Edit(int? id)
         {
@@ -149,10 +142,9 @@ namespace QuizApp.Controllers
             }
 
             var quiz = await _context.Quiz
-                .Include(q => q.Pytania) // Załadowanie pytań
-                .ThenInclude(p => p.Odpowiedzi) // I odpowiedzi
+                .Include(q => q.Pytania)
+                .ThenInclude(p => p.Odpowiedzi)
                 .FirstOrDefaultAsync(q => q.Id == id);
-
 
             if (quiz == null)
             {
@@ -231,6 +223,29 @@ namespace QuizApp.Controllers
         private bool QuizExists(int id)
         {
             return (_context.Quiz?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+
+        // Nowa akcja do generowania tokenu
+        public JsonResult GenerateToken(int quizId) // Zmiana typu zwracanego na JsonResult
+        {
+            var random = new Random();
+            var token = random.Next(100000, 999999).ToString();
+
+            var quizToken = new QuizToken
+            {
+                QuizId = quizId,
+                Token = token,
+                ExpirationDate = DateTime.Now.AddMinutes(30)
+            };
+            _context.QuizToken.Add(quizToken);
+            _context.SaveChanges();
+
+            return Json(new { token = token }); // Poprawne zwracanie JSON
+        }
+
+        public IActionResult Token(string token)
+        {
+            return View("Token", token);
         }
     }
 }

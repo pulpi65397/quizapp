@@ -1,8 +1,19 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model QuizApp.Models.JoinQuizViewModel
+
+@{
+    ViewData["Title"] = "Strona główna";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Witaj w QuizApp</h1>
+    <p>Wprowadź token quizu, aby dołączyć.</p>
+
+    <form asp-action="JoinQuiz" method="post">
+        <div class="form-group">
+            <label for="token">Token quizu:</label>
+            <input asp-for="Token" id="token" class="form-control" />
+            <span asp-validation-for="Token" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Dołącz do quizu</button>
+    </form>
 </div>

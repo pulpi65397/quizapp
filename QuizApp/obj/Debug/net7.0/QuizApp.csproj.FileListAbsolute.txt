@@ -276,9 +276,9 @@ E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\staticw
 E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\scopedcss\bundle\QuizApp.styles.css
 E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\scopedcss\projectbundle\QuizApp.bundle.scp.css
-E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\QuizApp.csproj.CopyComplete
 E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\QuizApp.dll
 E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\refint\QuizApp.dll
 E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\QuizApp.pdb
 E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\QuizApp.genruntimeconfig.cache
 E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\ref\QuizApp.dll
+E:\kopia dokumenty\STUDIA\Semestr 6\PZ\Projekt2\QuizApp\obj\Debug\net7.0\QuizApp.csproj.CopyComplete

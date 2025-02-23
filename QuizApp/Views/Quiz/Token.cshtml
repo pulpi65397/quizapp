@@ -1,0 +1,30 @@
+﻿@model string
+
+@{
+    ViewData["Title"] = "Wygenerowany token";
+}
+
+<div class="token-container">
+    <h1>Twój token</h1>
+    <div class="token-box">
+        <p>@Model</p>
+    </div>
+    <p>Użyj tego tokenu, aby dołączyć do quizu.</p>
+</div>
+
+<style>
+    .token-container {
+        text-align: center;
+        margin-top: 50px;
+    }
+
+    .token-box {
+        background-color: #f0f0f0;
+        padding: 20px;
+        border-radius: 5px;
+        margin: 20px auto;
+        width: 200px;
+        font-size: 24px;
+        font-weight: bold;
+    }
+</style>

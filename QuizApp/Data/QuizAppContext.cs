@@ -23,6 +23,9 @@ namespace QuizApp.Data
 
         public DbSet<QuizApp.Models.Wynik> Wynik { get; set; } = default!;
 
+        public DbSet<QuizApp.Models.QuizToken> QuizToken { get; set; } = default!;
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
