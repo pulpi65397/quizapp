@@ -1,0 +1,23 @@
+﻿@model QuizApp.Models.RegisterViewModel
+
+<h2>Rejestracja</h2>
+
+<form asp-action="Register" method="post">
+    <div asp-validation-summary="All"></div>
+    <div>
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" />
+        <span asp-validation-for="UserName"></span>
+    </div>
+    <div>
+        <label asp-for="Password"></label>
+        <input asp-for="Password" />
+        <span asp-validation-for="Password"></span>
+    </div>
+    <div>
+        <label asp-for="ConfirmPassword"></label>
+        <input asp-for="ConfirmPassword" />
+        <span asp-validation-for="ConfirmPassword"></span>
+    </div>
+    <button type="submit">Zarejestruj się</button>
+</form>

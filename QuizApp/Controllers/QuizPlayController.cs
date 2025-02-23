@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using System;
+using System.Collections.Generic;
 
 namespace QuizApp.Controllers
 {
@@ -37,24 +38,23 @@ namespace QuizApp.Controllers
             {
                 return NotFound();
             }
-            var rankingViewModel = new RankingViewModel { Uzytkownicy = new List<RankingUzytkownika>() };
 
-            // Przekazujemy model quizu do widoku głównego, a pusty model rankingu do Partial View
-            ViewData["RankingViewModel"] = rankingViewModel; // Alternatywnie, możesz użyć ViewBag
+            var rankingViewModel = new RankingViewModel { Uzytkownicy = new List<RankingUzytkownika>() };
+            ViewData["RankingViewModel"] = rankingViewModel;
 
             return View(quiz);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Sprawdz(int quizId, int pytanieId, int odpowiedzId, long czasOdpowiedzi)
+        public JsonResult Sprawdz(int quizId, int pytanieId, int odpowiedzId, long czasOdpowiedzi)
         {
-            var pytanie = await _context.Pytanie
+            var pytanie = _context.Pytanie
                 .Include(p => p.Odpowiedzi)
-                .FirstOrDefaultAsync(p => p.Id == pytanieId && p.QuizId == quizId);
+                .FirstOrDefault(p => p.Id == pytanieId && p.QuizId == quizId);
 
             if (pytanie == null)
             {
-                return NotFound();
+                return Json(new Wynik { Poprawna = false, Punkty = 0 });
             }
 
             var poprawnaOdpowiedz = pytanie.Odpowiedzi.Any(o => o.Id == odpowiedzId && o.CzyPoprawna);
@@ -69,7 +69,8 @@ namespace QuizApp.Controllers
                 if (punktyZaOdpowiedz < 0) punktyZaOdpowiedz = 0;
             }
 
-            return Json(new { poprawna = poprawnaOdpowiedz, punkty = punktyZaOdpowiedz });
+            var wynikSprawdzenia = new Wynik { Poprawna = poprawnaOdpowiedz, Punkty = punktyZaOdpowiedz };
+            return Json(wynikSprawdzenia); // Używamy Json(wynikSprawdzenia)
         }
 
         [HttpPost]
@@ -103,13 +104,12 @@ namespace QuizApp.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                // Obsługa gościa -  alternatywnie można użyć anonimowych identyfikatorów
                 var guestUser = await _userManager.FindByNameAsync("guest");
 
                 if (guestUser == null)
                 {
-                    guestUser = new ApplicationUser { UserName = "guest", Nick = "guest" };
-                    var result = await _userManager.CreateAsync(guestUser, "Haslo123"); // Zmień na silne hasło w produkcji!
+                    guestUser = new ApplicationUser { UserName = "guest" }; // Używamy UserName
+                    var result = await _userManager.CreateAsync(guestUser, "Haslo123");
                     if (!result.Succeeded)
                     {
                         return BadRequest(result.Errors);
@@ -118,13 +118,12 @@ namespace QuizApp.Controllers
                 userId = guestUser.Id;
             }
 
-
             var wynik = new Wynik
             {
                 QuizId = quizId,
                 UzytkownikId = userId,
                 Punkty = punkty,
-                CzasUkonczenia = TimeSpan.Zero // Dodaj logikę zapisu czasu ukończenia quizu
+                CzasUkonczenia = TimeSpan.Zero
             };
 
             _context.Wynik.Add(wynik);
@@ -132,7 +131,6 @@ namespace QuizApp.Controllers
 
             return RedirectToAction("Wynik", new { quizId = quizId, punkty = punkty });
         }
-
 
         public async Task<IActionResult> Wynik(int quizId, int punkty)
         {
@@ -143,11 +141,7 @@ namespace QuizApp.Controllers
                 var guestUser = await _userManager.FindByNameAsync("guest");
                 if (guestUser == null)
                 {
-                    guestUser = new ApplicationUser
-                    {
-                        UserName = "guest",
-                        Nick = "guest"
-                    };
+                    guestUser = new ApplicationUser { UserName = "guest" }; // Używamy UserName
                     _context.Users.Add(guestUser);
                     await _context.SaveChangesAsync();
                 }
@@ -161,7 +155,5 @@ namespace QuizApp.Controllers
 
             return View("~/Views/Wynik/Index.cshtml");
         }
-
-
     }
 }

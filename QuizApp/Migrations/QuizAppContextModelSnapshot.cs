@@ -47,10 +47,6 @@ namespace QuizApp.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Nick")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -306,6 +302,17 @@ namespace QuizApp.Migrations
                     b.Property<TimeSpan>("CzasUkonczenia")
                         .HasColumnType("time");
 
+                    b.Property<string>("CzasyOdpowiedziJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OdpowiedziJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Poprawna")
+                        .HasColumnType("bit");
+
                     b.Property<int>("Punkty")
                         .HasColumnType("int");
 
@@ -313,6 +320,7 @@ namespace QuizApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("UzytkownikId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -407,7 +415,9 @@ namespace QuizApp.Migrations
 
                     b.HasOne("ApplicationUser", "Uzytkownik")
                         .WithMany()
-                        .HasForeignKey("UzytkownikId");
+                        .HasForeignKey("UzytkownikId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Quiz");
 

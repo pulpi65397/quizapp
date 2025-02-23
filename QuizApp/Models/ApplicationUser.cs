@@ -3,5 +3,5 @@ using QuizApp.Models;
 
 public class ApplicationUser : IdentityUser
 {
-    public string Nick { get; set; }
+    
 }

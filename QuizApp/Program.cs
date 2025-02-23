@@ -1,8 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using QuizApp.Controllers;
 using QuizApp.Data;
 using QuizApp.Hubs;
 using QuizApp.Models;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
+using QuizApp.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +33,26 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true; // Opcjonalne: Czy sesja jest niezbędna do działania aplikacji
 });
 builder.Services.AddSignalR();
+builder.Services.AddScoped<QuizPlayController>();
+builder.Services.AddLogging();
+builder.Services.AddSingleton<QuizState>();
+builder.Services.AddLocalization(opt => { opt.ResourcesPath = "Resources"; });
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { new CultureInfo("pl-PL") };
+    options.DefaultRequestCulture = new RequestCulture("pl-PL");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
+
+builder.Services.AddMvc()
+    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+    .AddDataAnnotationsLocalization(options =>
+    {
+        options.DataAnnotationLocalizerProvider = (type, factory) =>
+            factory.Create(typeof(ValidationMessages));
+    });
+
 
 var app = builder.Build();
 
@@ -44,6 +70,7 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthentication(); // Dodaj uwierzytelnianie
 app.UseAuthorization();
+app.UseRequestLocalization();
 
 
 app.UseEndpoints(endpoints =>

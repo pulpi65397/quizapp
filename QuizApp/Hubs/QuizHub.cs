@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System;
 using QuizApp.Models;
+using QuizApp.Controllers;
+using QuizApp.Data;
 
 namespace QuizApp.Hubs
 {
@@ -10,6 +12,13 @@ namespace QuizApp.Hubs
     {
         // Słownik przechowujący stan quizu dla każdego pokoju (quizId)
         private static readonly ConcurrentDictionary<string, QuizState> _quizStates = new();
+        private readonly ILogger<QuizState> _logger;
+
+        public QuizHub(ILogger<QuizState> logger)
+        {
+            _logger = logger;
+        }
+
 
         public async Task DołączDoQuizu(int quizId, string uzytkownikId, string uzytkownikNick)
         {
@@ -19,7 +28,9 @@ namespace QuizApp.Hubs
             await Groups.AddToGroupAsync(Context.ConnectionId, quizIdStr);
 
             // Pobieramy lub tworzymy stan quizu
-            var quizState = _quizStates.GetOrAdd(quizIdStr, _ => new QuizState());
+            //var quizState = _quizStates.GetOrAdd(quizIdStr, _ => new QuizState());
+            var quizState = _quizStates.GetOrAdd(quizIdStr, _ => new QuizState(_logger));
+
 
             // Dodajemy użytkownika do stanu quizu
             quizState.DodajUzytkownika(uzytkownikId, uzytkownikNick, Context.ConnectionId);
@@ -48,17 +59,29 @@ namespace QuizApp.Hubs
             }
         }
 
-
+        /*
         public async Task RozpocznijQuiz(int quizId)
         {
             string quizIdStr = quizId.ToString();
             if (_quizStates.TryGetValue(quizIdStr, out var quizState))
             {
+                // Pobierz pytania z bazy danych
+                var httpContext = Context.GetHttpContext();
+                var dbContext = httpContext.RequestServices.GetService<QuizAppContext>();
+                var pytania = await dbContext.Pytanie
+                    .Include(p => p.Odpowiedzi)
+                    .Where(p => p.QuizId == quizId)
+                    .ToListAsync();
+
+                // Zainicjalizuj stan quizu
+                quizState.InicjalizujPytania(pytania);
                 quizState.CzyRozpoczelo = true;
+
                 await Clients.Group(quizIdStr).SendAsync("RozpocznijQuiz");
+                await PokazNastepnePytanie(quizId);
             }
         }
-
+        */
         public async Task PokazPytanie(int quizId, object pytanie) // 'object' ponieważ przesyłamy serializowany obiekt
         {
             string quizIdStr = quizId.ToString();
@@ -74,20 +97,54 @@ namespace QuizApp.Hubs
             string quizIdStr = quizId.ToString();
             if (_quizStates.TryGetValue(quizIdStr, out var quizState))
             {
-                // Aktualizujemy wyniki w stanie quizu
-                quizState.ZapiszOdpowiedz(uzytkownikId, pytanieId, odpowiedzId, czasOdpowiedzi);
+                // Pobierz kontekst HTTP i kontroler
+                var context = Context.GetHttpContext();
+                var controller = context.RequestServices.GetService<QuizPlayController>();
 
-                // Wysyłamy informację o odpowiedzi do wszystkich w grupie (opcjonalnie)
-                await Clients.Group(quizIdStr).SendAsync("OdpowiedzNaPytanie", uzytkownikId, pytanieId, odpowiedzId, czasOdpowiedzi);
+                // Sprawdź poprawność odpowiedzi
+                //var result = await controller.Sprawdz(quizId, pytanieId, odpowiedzId, czasOdpowiedzi);
 
-                // Wysyłamy aktualne wyniki do wszystkich (lub tylko do zainteresowanych)
-                await Clients.Group(quizIdStr).SendAsync("WynikiCzęściowe", quizState.Wyniki);
+                // Zaktualizuj stan użytkownika
+                var user = quizState.Uzytkownicy[uzytkownikId];
+               // user.Punkty += ((Wynik)result.Value).Punkty;
 
-                // Jeśli wszyscy odpowiedzieli, można przejść do następnego pytania (logika w kontrolerze lub tutaj)
+                user.Odpowiedzi[pytanieId] = odpowiedzId;
+                user.CzasyOdpowiedzi[pytanieId] = czasOdpowiedzi;
+
+                // Wyślij aktualny ranking
+                await Clients.Group(quizIdStr).SendAsync("AktualizujRanking", quizState.PobierzRanking());
+
+                // Sprawdź czy wszyscy odpowiedzieli
                 if (quizState.CzyWszyscyOdpowiedzieli(pytanieId))
                 {
                     await Clients.Group(quizIdStr).SendAsync("PytanieZakonczone");
+
+                    // Automatycznie przejdź do następnego pytania po 5 sekundach
+                    await Task.Delay(5000);
+                    if (quizState?.Pytania != null && quizState.Pytania.Count > 0)
+                    {
+                        if (quizState.AktualnePytanieIndex < quizState.Pytania.Count - 1)
+                        {
+                            quizState.AktualnePytanieIndex++;
+                            await PokazNastepnePytanie(quizId);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Błąd: quizState.Pytania jest null lub puste.");
+                    }
                 }
+            }
+        }
+
+        private async Task PokazNastepnePytanie(int quizId)
+        {
+            string quizIdStr = quizId.ToString();
+            if (_quizStates.TryGetValue(quizIdStr, out var quizState))
+            {
+                var pytanie = quizState.Pytania[quizState.AktualnePytanieIndex];
+                await Clients.Group(quizIdStr).SendAsync("PokazPytanie", pytanie);
+                StartTimer(quizIdStr);
             }
         }
 
@@ -114,46 +171,65 @@ namespace QuizApp.Hubs
             }
             return new List<RankingUzytkownika>();
         }
+
+        private void StartTimer(string quizIdStr)
+        {
+            if (_quizStates.TryGetValue(quizIdStr, out var quizState))
+            {
+                quizState.Timer = new Timer(async _ =>
+                {
+                    await PokazNastepnePytanie(int.Parse(quizIdStr));
+                }, null, 30000, Timeout.Infinite); // 30 sekund, jednorazowo
+            }
+        }
     }
 
     // Klasa przechowująca stan quizu
     public class QuizState
     {
+        
+        private readonly ILogger<QuizState> _logger;
+        public QuizState(ILogger<QuizState> logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+        
+
+        public Timer Timer { get; set; }
         public bool CzyRozpoczelo { get; set; } = false;
-        public object AktualnePytanie { get; set; } // Serializowany obiekt pytania
-        public ConcurrentDictionary<string, Uzytkownik> Uzytkownicy { get; set; } = new();
-        public ConcurrentDictionary<string, Dictionary<int, WynikUzytkownika>> Wyniki { get; set; } = new(); // UzytkownikId -> (PytanieId -> WynikUzytkownika)
+        public object AktualnePytanie { get; set; }
+        public int AktualnePytanieIndex { get; set; }
+        public List<Pytanie> Pytania { get; set; }
+        public ConcurrentDictionary<string, Uzytkownik> Uzytkownicy { get; set; } = new ConcurrentDictionary<string, Uzytkownik>(); // Dodajemy Uzytkownicy
+        public ConcurrentDictionary<string, Dictionary<int, WynikUzytkownika>> Wyniki { get; set; } = new ConcurrentDictionary<string, Dictionary<int, WynikUzytkownika>>(); // Dodajemy Wyniki
+
+        public void InicjalizujPytania(List<Pytanie> pytania)
+        {
+            Pytania = pytania;
+            AktualnePytanieIndex = 0;
+        }
 
         public void DodajUzytkownika(string uzytkownikId, string uzytkownikNick, string connectionId)
         {
-            if (string.IsNullOrEmpty(uzytkownikNick))
-            {
-                uzytkownikNick = "guest"; // Przypisujemy "guest"
-            }
-
-            Uzytkownik nowyUzytkownik = new Uzytkownik { Nick = uzytkownikNick, ConnectionId = connectionId };
-            Uzytkownicy.TryAdd(uzytkownikId, nowyUzytkownik); // Używamy TryAdd
-
-            // Alternatywnie (jeśli chcesz nadpisać istniejącego użytkownika):
-            // Uzytkownicy[uzytkownikId] = nowyUzytkownik;
-
+            Uzytkownik nowyUzytkownik = new Uzytkownik { Nick = uzytkownikNick, Id = uzytkownikId, ConnectionId = connectionId };
+            Uzytkownicy.TryAdd(uzytkownikId, nowyUzytkownik);
             Wyniki.TryAdd(uzytkownikId, new Dictionary<int, WynikUzytkownika>());
         }
 
-        public void ZapiszOdpowiedz(string uzytkownikId, int pytanieId, int odpowiedzId, long czasOdpowiedzi)
+        public List<RankingUzytkownika> PobierzRanking()
         {
-            if (Wyniki.TryGetValue(uzytkownikId, out var wynikiUzytkownika))
+            return Uzytkownicy.Select(u => new RankingUzytkownika
             {
-                wynikiUzytkownika[pytanieId] = new WynikUzytkownika { OdpowiedzId = odpowiedzId, CzasOdpowiedzi = czasOdpowiedzi };
-            }
+                Nick = u.Value.Nick,
+                Punkty = ObliczPunkty(u.Value)
+            }).OrderByDescending(r => r.Punkty).ToList();
         }
-
 
         public bool CzyWszyscyOdpowiedzieli(int pytanieId)
         {
-            foreach (var uzytkownik in Uzytkownicy.Keys)
+            foreach (var uzytkownik in Uzytkownicy.Values)
             {
-                if (!Wyniki.ContainsKey(uzytkownik) || !Wyniki[uzytkownik].ContainsKey(pytanieId))
+                if (!uzytkownik.Odpowiedzi.ContainsKey(pytanieId))
                 {
                     return false; // Przynajmniej jeden użytkownik nie odpowiedział
                 }
@@ -161,32 +237,38 @@ namespace QuizApp.Hubs
             return true; // Wszyscy odpowiedzieli
         }
 
-        public List<RankingUzytkownika> PobierzRanking()
+        public int ObliczPunkty(Uzytkownik user)
         {
-
-            return Uzytkownicy.Select(u => new RankingUzytkownika
-            {
-                Nick = u.Value.Nick,
-                Punkty = ObliczPunkty(u.Key) // Dodaj metodę ObliczPunkty (poniżej)
-            })
-            .OrderByDescending(r => r.Punkty)
-            .ToList();
+            return user.Odpowiedzi.Sum(o => {
+                var czas = user.CzasyOdpowiedzi[o.Key];
+                return CzyPoprawnaOdpowiedz(o.Key, o.Value)
+                    ? (int)(1000 * (1 - (double)czas / 30000))
+                    : 0;
+            });
         }
 
-        private int ObliczPunkty(string uzytkownikId)
+        public bool CzyPoprawnaOdpowiedz(int pytanieId, int odpowiedzId)
         {
-            int punkty = 0;
-            if (Wyniki.ContainsKey(uzytkownikId))
+            var pytanie = Pytania?.FirstOrDefault(p => p.Id == pytanieId);
+
+            if (pytanie == null)
             {
-                foreach (var wynik in Wyniki[uzytkownikId].Values)
-                {
-                    // Dodaj logikę obliczania punktów na podstawie odpowiedzi i czasu
-                    // To zależy od twojego algorytmu punktowania
-                    punkty += (int)(1000 * (1 - (double)wynik.CzasOdpowiedzi / 30000)); // Przykład
-                }
+                _logger.LogError($"Nie znaleziono pytania o ID {pytanieId}");
+                return false;
             }
-            return punkty;
+
+            var odpowiedz = pytanie.Odpowiedzi?.FirstOrDefault(o => o.Id == odpowiedzId);
+            if (odpowiedz == null)
+            {
+                _logger.LogError($"Nie znaleziono odpowiedzi o ID {odpowiedzId} dla pytania {pytanieId}");
+                return false;
+            }
+
+            return odpowiedz.CzyPoprawna;
         }
+
+
+
     }
 
     public class Uzytkownik
@@ -194,7 +276,9 @@ namespace QuizApp.Hubs
         public string Id { get; set; }
         public string Nick { get; set; }
         public int Punkty { get; set; }
-        public string ConnectionId { get; set; } // Dodajemy ConnectionId
+        public string ConnectionId { get; set; }
+        public Dictionary<int, int> Odpowiedzi { get; set; } = new Dictionary<int, int>(); // Dodajemy słownik na odpowiedzi
+        public Dictionary<int, long> CzasyOdpowiedzi { get; set; } = new Dictionary<int, long>(); // Dodajemy słownik na czasy odpowiedzi
     }
 
     public class WynikUzytkownika
