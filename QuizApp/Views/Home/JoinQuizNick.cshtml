@@ -1,0 +1,18 @@
+﻿@model QuizApp.Models.JoinQuizViewModel
+
+@{
+    ViewData["Title"] = "Wprowadź nick";
+}
+
+<h1>Wprowadź nick</h1>
+
+<form asp-action="JoinQuizWithNick" method="post">
+    <input type="hidden" asp-for="Token" />
+    <input type="hidden" asp-for="QuizId" />
+    <div class="form-group">
+        <label asp-for="Nick"></label>
+        <input asp-for="Nick" class="form-control" />
+        <span asp-validation-for="Nick" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Dołącz</button>
+</form>

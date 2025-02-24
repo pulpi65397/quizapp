@@ -44,5 +44,8 @@ namespace QuizApp.Data
                 .HasForeignKey(o => o.PytanieId);
 
         }
+
+
+        public DbSet<QuizApp.Models.Uzytkownik> Uzytkownik { get; set; } = default!;
     }
 }

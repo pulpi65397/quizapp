@@ -316,6 +316,23 @@ namespace QuizApp.Migrations
                     b.ToTable("QuizToken");
                 });
 
+            modelBuilder.Entity("QuizApp.Models.Uzytkownik", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nick")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Uzytkownik");
+                });
+
             modelBuilder.Entity("QuizApp.Models.Wynik", b =>
                 {
                     b.Property<int>("Id")

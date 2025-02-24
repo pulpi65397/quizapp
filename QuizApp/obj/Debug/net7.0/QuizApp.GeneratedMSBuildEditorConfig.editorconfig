@@ -28,6 +28,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Home/JoinQuizNick.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxKb2luUXVpek5pY2suY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -114,6 +118,26 @@ build_metadata.AdditionalFiles.CssScope =
 
 [E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Test/Wyniki.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVzdFxXeW5pa2kuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Uzytkownik/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXp5dGtvd25pa1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Uzytkownik/Delete.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXp5dGtvd25pa1xEZWxldGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Uzytkownik/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXp5dGtvd25pa1xEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Uzytkownik/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXp5dGtvd25pa1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Uzytkownik/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXp5dGtvd25pa1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [E:/kopia dokumenty/STUDIA/Semestr 6/PZ/Projekt2/QuizApp/Views/Wynik/BrakWyniku.cshtml]
