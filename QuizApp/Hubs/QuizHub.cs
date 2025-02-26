@@ -5,6 +5,7 @@ using System;
 using QuizApp.Models;
 using QuizApp.Controllers;
 using QuizApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace QuizApp.Hubs
 {
@@ -59,7 +60,6 @@ namespace QuizApp.Hubs
             }
         }
 
-        /*
         public async Task RozpocznijQuiz(int quizId)
         {
             string quizIdStr = quizId.ToString();
@@ -81,7 +81,6 @@ namespace QuizApp.Hubs
                 await PokazNastepnePytanie(quizId);
             }
         }
-        */
         public async Task PokazPytanie(int quizId, object pytanie) // 'object' ponieważ przesyłamy serializowany obiekt
         {
             string quizIdStr = quizId.ToString();
@@ -162,12 +161,7 @@ namespace QuizApp.Hubs
             string quizIdStr = quizId.ToString();
             if (_quizStates.TryGetValue(quizIdStr, out var quizState))
             {
-               if (quizState.Uzytkownicy.Count < 2) 
-        {
-            quizState.Uzytkownicy.TryAdd("testuser1", new Uzytkownik { Nick = "Testowy1", Id = "testuser1", Punkty = 0 });
-            quizState.Uzytkownicy.TryAdd("testuser2", new Uzytkownik { Nick = "Testowy2", Id = "testuser2", Punkty = 0 });
-        }
-        return quizState.PobierzRanking();
+                return quizState.PobierzRanking();
             }
             return new List<RankingUzytkownika>();
         }
@@ -239,11 +233,14 @@ namespace QuizApp.Hubs
 
         public int ObliczPunkty(Uzytkownik user)
         {
-            return user.Odpowiedzi.Sum(o => {
-                var czas = user.CzasyOdpowiedzi[o.Key];
-                return CzyPoprawnaOdpowiedz(o.Key, o.Value)
-                    ? (int)(1000 * (1 - (double)czas / 30000))
-                    : 0;
+            if (Pytania == null) return 0;
+
+            return user.Odpowiedzi.Sum(o =>
+            {
+                if (!CzyPoprawnaOdpowiedz(o.Key, o.Value)) return 0;
+
+                var czas = user.CzasyOdpowiedzi.TryGetValue(o.Key, out var t) ? t : 30000;
+                return Math.Max((int)(1000 * (1 - (double)czas / 30000)), 0);
             });
         }
 

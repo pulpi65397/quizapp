@@ -16,8 +16,11 @@
     <button type="button" id="submit-button" class="btn btn-primary">Prześlij odpowiedź</button>
 </div>
 
+<!-- Kontener na ranking -->
 <div id="ranking-container" style="display: none;">
-    @await Html.PartialAsync("_Ranking", ViewData["RankingViewModel"])
+    <h2>Ranking po pytaniu</h2>
+    <ul id="ranking-list"></ul>
+    <p id="next-question-timer">Przejście do kolejnego pytania za: <span id="countdown">10</span> sekund</p>
 </div>
 
 <link href="https://fonts.cdnfonts.com/css/seven-segment" rel="stylesheet">
@@ -67,15 +70,8 @@
     }
 
     #ranking-container {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: white;
-        padding: 20px;
-        border: 1px solid #ccc;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
+        margin-top: 20px;
+        text-align: center;
     }
 
     #ranking-list {
@@ -86,6 +82,17 @@
         #ranking-list li {
             margin-bottom: 5px;
         }
+
+    #next-question-timer {
+        margin-top: 15px;
+        font-weight: bold;
+        color: #666;
+    }
+
+    #countdown {
+        color: #d00;
+        font-weight: bold;
+    }
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -104,134 +111,124 @@
         let aktualnePytanieIndex = 0;
         let punkty = 0;
         let timerInterval;
+        let rankingTimeout;
+        let countdownInterval;
 
+        // Funkcja wyświetlająca pytanie
         function wyswietlPytanie(pytanie) {
             $("#question-text").text(pytanie.tekst);
             $("#answers-container").empty();
             pytanie.odpowiedzi.forEach(odpowiedz => {
                 const odpowiedzHtml = `
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="odpowiedz" value="${odpowiedz.id}" id="odpowiedz-${odpowiedz.id}">
-                                <label class="form-check-label" for="odpowiedz-${odpowiedz.id}">${odpowiedz.tekst}</label>
-                            </div>`;
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="odpowiedz" value="${odpowiedz.id}" id="odpowiedz-${odpowiedz.id}">
+                            <label class="form-check-label" for="odpowiedz-${odpowiedz.id}">${odpowiedz.tekst}</label>
+                        </div>`;
                 $("#answers-container").append(odpowiedzHtml);
             });
         }
 
+        // Funkcja do uruchomienia dokładnego timera
         function startTimer(seconds) {
-            let timeLeft = seconds;
-            $("#timer").text(timeLeft);
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                $("#timer").text(timeLeft);
-                if (timeLeft <= 5) {
-                    $("#timer").css("color", "red"); // Zmieniamy kolor na czerwony
-                } else {
-                    $("#timer").css("color", "#0f0"); // Przywracamy domyślny kolor (neonowy zielony)
-                }
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    $("#submit-button").click();
-                }
-            }, 1000);
+            let startTime = Date.now();
+            let endTime = startTime + seconds * 1000;
+
+            const updateTimer = () => {
+                const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+                $("#timer").text(remaining);
+
+                if (remaining <= 5) $("#timer").addClass("red");
+                else $("#timer").removeClass("red");
+
+                if (remaining > 0) requestAnimationFrame(updateTimer);
+                else $("#submit-button").click();
+            };
+
+            cancelAnimationFrame(timerInterval);
+            updateTimer();
         }
 
-        connection.on("UzytkownikDolaczyl", (uzytkownikId, uzytkownikNick) => {
-            console.log("Użytkownik " + uzytkownikNick + " dołączył.");
-        });
+        // Funkcja wyświetlająca ranking
+        function showRanking(ranking, isLastQuestion) {
+            $("#ranking-list").empty();
+            if (ranking) {
+                ranking.forEach(user => {
+                    const listItem = $("<li>").text(`${user.Nick}: ${user.Punkty}`);
+                    $("#ranking-list").append(listItem);
+                });
+            }
 
-        connection.on("RozpocznijQuiz", () => {
-            wyswietlPytanie(pytania[aktualnePytanieIndex]);
-            startTimer(30);
-        });
+            // Logika dla licznika
+            if (!isLastQuestion) {
+                let countdown = 10;
+                $("#countdown").text(countdown);
+                $("#next-question-timer").show();
 
+                countdownInterval = setInterval(() => {
+                    countdown--;
+                    $("#countdown").text(countdown);
+                    if (countdown <= 0) {
+                        clearInterval(countdownInterval);
+                        hideRankingAndContinue();
+                    }
+                }, 1000);
+            } else {
+                $("#next-question-timer").hide();
+                rankingTimeout = setTimeout(() => {
+                    window.location.href = '@Url.Action("Wynik", "QuizPlay", new { quizId = @Model.Id })' + '&punkty=' + punkty;
+                }, 10000);
+            }
+
+            $("#ranking-container").show();
+        }
+
+        // Funkcja ukrywająca ranking
+        function hideRankingAndContinue() {
+            $("#ranking-container").hide();
+            clearInterval(countdownInterval);
+
+            if (aktualnePytanieIndex < pytania.length - 1) {
+                aktualnePytanieIndex++;
+                wyswietlPytanie(pytania[aktualnePytanieIndex]);
+                startTimer(30);
+            }
+        }
+
+        // Obsługa zdarzeń SignalR
         connection.on("PokazPytanie", (pytanie) => {
             wyswietlPytanie(pytanie);
             startTimer(30);
         });
+
         connection.on("PytanieZakonczone", async () => {
             const ranking = await connection.invoke("PobierzRanking", quizId);
-
-            console.log("Dane rankingu (klient):", ranking); // Logowanie danych
-
-            $("#ranking-list").empty();
-            if (ranking && Array.isArray(ranking)) {
-                ranking.forEach(user => {
-                    console.log("Użytkownik (klient):", user); // Logowanie każdego użytkownika
-                    if (user && user.Nick && user.Punkty) { // Sprawdzenie, czy istnieją właściwości Nick i Punkty
-                        const listItem = $("<li>").text(`${user.Nick}: ${user.Punkty}`);
-                        $("#ranking-list").append(listItem);
-                    } else {
-                        console.error("Nieprawidłowe dane użytkownika:", user);
-                    }
-                });
-            } else {
-                console.error("Nieprawidłowe dane rankingu:", ranking);
-            }
-
-            $("#rankingModal").modal("show");
+            const isLastQuestion = aktualnePytanieIndex === pytania.length - 1;
+            showRanking(ranking, isLastQuestion);
         });
 
-        connection.on("AktualizujRanking", (ranking) => {
-            $("#ranking-list").empty();
-            ranking.forEach(user => {
-                const listItem = $("<li>").text(`${user.Nick}: ${user.Punkty}`);
-                $("#ranking-list").append(listItem);
-            });
-        });
-
+        // Inicjalizacja połączenia
         connection.start()
             .then(() => {
-                console.log("Połączono z Hubem.");
-
                 connection.invoke("DołączDoQuizu", quizId, uzytkownikId, uzytkownikNick);
-            })
-            .catch(err => console.error("Błąd połączenia: " + err));
-
-        $(document).on("click", "#submit-button", function () {
-            if (connection.state === signalR.HubConnectionState.Connected) {
-                const wybranaOdpowiedz = $("input[name='odpowiedz']:checked").val();
-                const czasOdpowiedzi = 30 - parseInt($("#timer").text());
-
-                if (wybranaOdpowiedz) {
-                    clearInterval(timerInterval);
-
-                    connection.invoke("OdpowiedzNaPytanie", quizId, pytania[aktualnePytanieIndex].id, parseInt(wybranaOdpowiedz), czasOdpowiedzi * 1000, uzytkownikId)
-                        .then(() => {
-                            aktualnePytanieIndex++;
-                            if (aktualnePytanieIndex < pytania.length) {
-                                wyswietlPytanie(pytania[aktualnePytanieIndex]);
-                                startTimer(30);
-                            } else {
-                                console.log("Koniec quizu!");
-                                window.location.href = '@Url.Action("Wynik", "QuizPlay", new { quizId = @Model.Id })' + '&punkty=' + punkty;
-                            }
-                        })
-                        .catch(err => console.error("Błąd odpowiedzi: " + err));
-                }
-            } else {
-                console.error("Połączenie SignalR nie jest aktywne.");
-            }
-
-        });
-
-        $("#kontynuuj-przycisk").click(function () {
-            $("#ranking-container").hide();
-            if (aktualnePytanieIndex < pytania.length) {
-                wyswietlPytanie(pytania[aktualnePytanieIndex]);
+                wyswietlPytanie(pytania[0]);
                 startTimer(30);
-            } else {
-                console.log("Koniec quizu!");
-                window.location.href = '@Url.Action("Wynik", "QuizPlay", new { quizId = @Model.Id })' + '&punkty=' + punkty;
+            })
+            .catch(err => console.error(err));
+
+        // Obsługa przycisku przesyłania
+        $("#submit-button").click(function () {
+            const wybranaOdpowiedz = $("input[name='odpowiedz']:checked").val();
+            const czasOdpowiedzi = 30 - parseInt($("#timer").text());
+
+            if (wybranaOdpowiedz) {
+                cancelAnimationFrame(timerInterval);
+                connection.invoke("OdpowiedzNaPytanie", quizId,
+                    pytania[aktualnePytanieIndex].id,
+                    parseInt(wybranaOdpowiedz),
+                    czasOdpowiedzi * 1000,
+                    uzytkownikId
+                );
             }
         });
-
-        if (pytania && pytania.length > 0) {
-            wyswietlPytanie(pytania[aktualnePytanieIndex]);
-            startTimer(30);
-        } else {
-            console.error("Brak pytań do wyświetlenia!");
-        }
     });
 </script>
