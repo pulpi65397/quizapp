@@ -3,7 +3,7 @@
 <h2>Ranking po pytaniu</h2>
 <ul id="ranking-list">
     @if (Model != null && Model.Uzytkownicy != null)
-    { // Sprawdzenie null
+    {
         @foreach (var user in Model.Uzytkownicy)
         {
             <li>@user.Nick: @user.Punkty</li>

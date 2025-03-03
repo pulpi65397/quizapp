@@ -19,6 +19,8 @@ public class QuizPlayController : Controller
 
     public async Task<IActionResult> Start(int? id)
     {
+        var userId = Request.Query["userId"].ToString();
+        ViewBag.UserId = userId;
         if (id == null)
         {
             return NotFound();
@@ -150,5 +152,15 @@ public class QuizPlayController : Controller
         ViewBag.Punkty = punkty;
 
         return View("~/Views/Wynik/Index.cshtml");
+    }
+
+    public async Task<IActionResult> GetUserNick(int userId)
+    {
+        var uzytkownik = await _context.Uzytkownik.FindAsync(userId);
+        if (uzytkownik == null)
+        {
+            return Content("Gość"); // Domyślny nick, jeśli użytkownik nie istnieje
+        }
+        return Content(uzytkownik.Nick);
     }
 }

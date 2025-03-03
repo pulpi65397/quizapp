@@ -100,12 +100,31 @@
 <script>
     $(document).ready(function () {
         const quizId = @Model.Id;
-        const uzytkownikId = "@User.FindFirstValue(ClaimTypes.NameIdentifier)";
-        const uzytkownikNick = "@User.Identity.Name";
+        let uzytkownikId = "";
+        let uzytkownikNick = "";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const userIdFromUrl = urlParams.get('userId');
+        if (userIdFromUrl) {
+            uzytkownikId = userIdFromUrl;
+
+            // AJAX do pobrania nicku
+            $.ajax({
+                url: '@Url.Action("GetUserNick", "QuizPlay")',
+                data: { userId: userIdFromUrl },
+                async: false, // Ważne! Czekaj na odpowiedź
+                success: function (nick) {
+                    uzytkownikNick = nick;
+                }
+
+            });
+        }
 
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/quizHub")
             .build();
+
+       
 
         let pytania = @Html.Raw(Json.Serialize(Model.Pytania));
         let aktualnePytanieIndex = 0;
@@ -205,6 +224,15 @@
             const isLastQuestion = aktualnePytanieIndex === pytania.length - 1;
             showRanking(ranking, isLastQuestion);
         });
+
+        connection.on("AktualizujRanking", function (ranking) {
+            $("#ranking-list").empty();
+            ranking.forEach(user => {
+                $("#ranking-list").append(`<li>${user.nick}: ${user.punkty}</li>`);
+            });
+            $("#ranking-container").show();
+        });
+
 
         // Inicjalizacja połączenia
         connection.start()
