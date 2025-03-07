@@ -145,6 +145,7 @@
                         </div>`;
                 $("#answers-container").append(odpowiedzHtml);
             });
+            $("#submit-button").prop("disabled", false);
         }
 
         // Funkcja do uruchomienia dokładnego timera
@@ -175,6 +176,7 @@
                     const listItem = $("<li>").text(`${user.Nick}: ${user.Punkty}`);
                     $("#ranking-list").append(listItem);
                 });
+                console.log("showRanking: ", ranking);
             }
 
             // Logika dla licznika
@@ -215,6 +217,7 @@
 
         // Obsługa zdarzeń SignalR
         connection.on("PokazPytanie", (pytanie) => {
+            pytania[aktualnePytanieIndex] = pytanie;
             wyswietlPytanie(pytanie);
             startTimer(30);
         });
@@ -231,6 +234,7 @@
                 $("#ranking-list").append(`<li>${user.nick}: ${user.punkty}</li>`);
             });
             $("#ranking-container").show();
+            console.log("AktualizujRanking: ", ranking);
         });
 
 
@@ -250,6 +254,8 @@
 
             if (wybranaOdpowiedz) {
                 cancelAnimationFrame(timerInterval);
+                $("#submit-button").prop("disabled", true);
+                console.log("Wysyłam odpowiedź na pytanie: ", pytania[aktualnePytanieIndex].id);
                 connection.invoke("OdpowiedzNaPytanie", quizId,
                     pytania[aktualnePytanieIndex].id,
                     parseInt(wybranaOdpowiedz),
@@ -258,5 +264,21 @@
                 );
             }
         });
+        connection.on("OdpowiedzNaPytaniePotwierdzenie", (ranking, isLastQuestion) => {
+            try {
+                $("#submit-button").prop("disabled", false); // Odblokuj przycisk
+                showRanking(ranking, isLastQuestion);
+            } catch (error) {
+                console.error(error);
+                alert("Wystąpił błąd podczas wyświetlania rankingu.");
+                $("#submit-button").prop("disabled", false);
+            }
+        });
+
+        connection.on("BladOdpowiedzi", (komunikat) => {
+            alert(komunikat);
+            $("#submit-button").prop("disabled", false); // Odblokuj przycisk
+        });
+
     });
 </script>

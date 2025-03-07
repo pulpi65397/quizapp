@@ -6,6 +6,7 @@ using QuizApp.Models;
 using QuizApp.Controllers;
 using QuizApp.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace QuizApp.Hubs
 {
@@ -105,43 +106,69 @@ namespace QuizApp.Hubs
             string quizIdStr = quizId.ToString();
             if (_quizStates.TryGetValue(quizIdStr, out var quizState))
             {
-                var context = Context.GetHttpContext();
-                var dbContext = context.RequestServices.GetService<QuizAppContext>();
-
-                // Pobranie poprawnej odpowiedzi
-                var pytanie = await dbContext.Pytanie
-                    .Include(p => p.Odpowiedzi)
-                    .FirstOrDefaultAsync(p => p.Id == pytanieId);
-
-                if (pytanie == null) return;
-
-                var poprawnaOdpowiedz = pytanie.Odpowiedzi.Any(o => o.Id == odpowiedzId && o.CzyPoprawna);
-                int punktyZaOdpowiedz = poprawnaOdpowiedz ? (int)(1000 * (1 - (double)czasOdpowiedzi / 30000)) : 0;
-
-                if (quizState.Uzytkownicy.TryGetValue(uzytkownikId, out var user))
+                try
                 {
-                    user.Punkty += punktyZaOdpowiedz;
-                    user.Odpowiedzi[pytanieId] = odpowiedzId;
-                    user.CzasyOdpowiedzi[pytanieId] = czasOdpowiedzi;
+                    var context = Context.GetHttpContext();
+                    var dbContext = context.RequestServices.GetService<QuizAppContext>();
+
+                    // Pobranie poprawnej odpowiedzi
+                    var pytanie = await dbContext.Pytanie
+                        .Include(p => p.Odpowiedzi)
+                        .FirstOrDefaultAsync(p => p.Id == pytanieId);
+
+                    if (pytanie == null)
+                    {
+                        _logger.LogError($"Nie znaleziono pytania o ID {pytanieId}.");
+                        await Clients.Caller.SendAsync("BladOdpowiedzi", "Nie znaleziono pytania.");
+                        return;
+                    }
+
+                    var poprawnaOdpowiedz = pytanie.Odpowiedzi.Any(o => o.Id == odpowiedzId && o.CzyPoprawna);
+                    int punktyZaOdpowiedz = poprawnaOdpowiedz ? (int)(1000 * (1 - (double)czasOdpowiedzi / 30000)) : 0;
+
+                    if (quizState.Uzytkownicy.TryGetValue(uzytkownikId, out var user))
+                    {
+                        // Zapobieganie podwójnemu przetwarzaniu odpowiedzi
+                        if (user.Odpowiedzi.ContainsKey(pytanieId))
+                        {
+                            _logger.LogWarning($"Odpowiedź na pytanie {pytanieId} została już przetworzona dla użytkownika {uzytkownikId}.");
+                            return;
+                        }
+
+                        user.Punkty += punktyZaOdpowiedz;
+                        user.Odpowiedzi[pytanieId] = odpowiedzId;
+                        user.CzasyOdpowiedzi[pytanieId] = czasOdpowiedzi;
+                    }
+
+                    // Pobranie nowego rankingu
+                    var ranking = quizState.PobierzRanking();
+
+                    _logger.LogInformation($"Ranking po odpowiedzi: {JsonSerializer.Serialize(ranking)}");
+
+                    // Wysłanie rankingu do wszystkich
+                    await Clients.Group(quizIdStr).SendAsync("AktualizujRanking", ranking);
+
+                    // Przejście do kolejnego pytania
+                    if (quizState.AktualnePytanieIndex < quizState.Pytania?.Count - 1)
+                    {
+                        quizState.AktualnePytanieIndex++;
+                        var nowePytanie = quizState.Pytania[quizState.AktualnePytanieIndex];
+                        await Clients.Group(quizIdStr).SendAsync("PokazPytanie", nowePytanie);
+                    }
+                    else
+                    {
+                        // Jeśli quiz się skończył -> pokazujemy końcowy ranking
+                        await Clients.Group(quizIdStr).SendAsync("KoniecQuizu", ranking);
+                        await Clients.Caller.SendAsync("KoniecQuizuKlient", ranking); // Dodane przekierowanie do Wynik.cshtml
+                    }
+                    //Potwierdzenie odpowiedzi
+                    await Clients.Caller.SendAsync("PotwierdzenieOdpowiedzi", ranking, quizState.AktualnePytanieIndex >= quizState.Pytania?.Count - 1);
+                    _logger.LogInformation($"Użytkownik {uzytkownikId} odpowiedział na pytanie {pytanieId}.");
                 }
-
-                // Pobranie nowego rankingu
-                var ranking = quizState.PobierzRanking();
-
-                // Wysłanie rankingu do wszystkich
-                await Clients.Group(quizIdStr).SendAsync("AktualizujRanking", ranking);
-
-                // Przejście do kolejnego pytania
-                if (quizState.AktualnePytanieIndex < quizState.Pytania?.Count - 1)
+                catch (Exception ex)
                 {
-                    quizState.AktualnePytanieIndex++;
-                    var nowePytanie = quizState.Pytania[quizState.AktualnePytanieIndex];
-                    await Clients.Group(quizIdStr).SendAsync("PokazPytanie", nowePytanie);
-                }
-                else
-                {
-                    // Jeśli quiz się skończył -> pokazujemy końcowy ranking
-                    await Clients.Group(quizIdStr).SendAsync("KoniecQuizu", ranking);
+                    _logger.LogError(ex, "Błąd podczas przetwarzania odpowiedzi.");
+                    await Clients.Caller.SendAsync("BladOdpowiedzi", "Wystąpił błąd podczas przetwarzania odpowiedzi.");
                 }
             }
         }
@@ -271,6 +298,8 @@ namespace QuizApp.Hubs
                 _logger.LogError($"Nie znaleziono odpowiedzi o ID {odpowiedzId} dla pytania {pytanieId}");
                 return false;
             }
+
+            _logger.LogInformation($"Sprawdzanie odpowiedzi. Pytanie ID: {pytanieId}, Odpowiedz ID: {odpowiedzId}, Poprawna: {odpowiedz.CzyPoprawna}");
 
             return odpowiedz.CzyPoprawna;
         }
