@@ -124,7 +124,7 @@
             .withUrl("/quizHub")
             .build();
 
-       
+
 
         let pytania = @Html.Raw(Json.Serialize(Model.Pytania));
         let aktualnePytanieIndex = 0;
@@ -139,10 +139,10 @@
             $("#answers-container").empty();
             pytanie.odpowiedzi.forEach(odpowiedz => {
                 const odpowiedzHtml = `
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="odpowiedz" value="${odpowiedz.id}" id="odpowiedz-${odpowiedz.id}">
-                            <label class="form-check-label" for="odpowiedz-${odpowiedz.id}">${odpowiedz.tekst}</label>
-                        </div>`;
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="odpowiedz" value="${odpowiedz.id}" id="odpowiedz-${odpowiedz.id}">
+                                <label class="form-check-label" for="odpowiedz-${odpowiedz.id}">${odpowiedz.tekst}</label>
+                            </div>`;
                 $("#answers-container").append(odpowiedzHtml);
             });
             $("#submit-button").prop("disabled", false);
@@ -171,15 +171,11 @@
         // Funkcja wyświetlająca ranking
         function showRanking(ranking, isLastQuestion) {
             $("#ranking-list").empty();
-            if (ranking) {
-                ranking.forEach(user => {
-                    const listItem = $("<li>").text(`${user.Nick}: ${user.Punkty}`);
-                    $("#ranking-list").append(listItem);
-                });
-                console.log("showRanking: ", ranking);
-            }
+            ranking.forEach(user => {
+                const listItem = $("<li>").text(`${user.Nick}: ${user.Punkty}`);
+                $("#ranking-list").append(listItem);
+            });
 
-            // Logika dla licznika
             if (!isLastQuestion) {
                 let countdown = 10;
                 $("#countdown").text(countdown);
@@ -195,9 +191,7 @@
                 }, 1000);
             } else {
                 $("#next-question-timer").hide();
-                rankingTimeout = setTimeout(() => {
-                    window.location.href = '@Url.Action("Wynik", "QuizPlay", new { quizId = @Model.Id })' + '&punkty=' + punkty;
-                }, 10000);
+                // Usunięto przekierowanie stąd
             }
 
             $("#ranking-container").show();
@@ -278,6 +272,12 @@
         connection.on("BladOdpowiedzi", (komunikat) => {
             alert(komunikat);
             $("#submit-button").prop("disabled", false); // Odblokuj przycisk
+        });
+
+        // Dodaj obsługę zdarzenia KoniecQuizuKlient
+        connection.on("KoniecQuizuKlient", (ranking) => {
+            $("#submit-button").prop("disabled", false); // Odblokuj przycisk
+            window.location.href = '@Url.Action("Wynik", "QuizPlay", new { quizId = Model.Id })' + '&punkty=' + punkty;
         });
 
     });
