@@ -8,7 +8,7 @@ namespace QuizApp.Models
     {
         public int Id { get; set; }
         public int QuizId { get; set; }
-        public string UzytkownikId { get; set; }
+        public int UzytkownikId { get; set; }
         public int Punkty { get; set; }
         public TimeSpan CzasUkonczenia { get; set; }
         public string OdpowiedziJson { get; set; } // Zmieniono na string
@@ -16,6 +16,6 @@ namespace QuizApp.Models
         public bool Poprawna { get; set; }
 
         public Quiz Quiz { get; set; }
-        public ApplicationUser Uzytkownik { get; set; }
+        public Uzytkownik Uzytkownik { get; set; }
     }
 }

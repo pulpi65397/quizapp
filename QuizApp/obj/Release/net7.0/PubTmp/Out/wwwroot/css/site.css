@@ -1,0 +1,35 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    color: blue; /* Mo¿esz u¿yæ konkretnego odcienia niebieskiego, np. #007bff */
+    margin-bottom: 60px;
+}
+h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    color: #0056b3; /* Nieco ciemniejszy niebieski dla nag³ówków */
+}
+.navbar-brand {
+    font-family: 'Jost', sans-serif;
+    font-weight: 600;
+    color: #FFFF00; /* Mo¿esz u¿yæ konkretnego odcienia ¿ó³tego, np. #FFFF00 */
+}

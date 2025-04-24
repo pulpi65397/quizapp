@@ -8,52 +8,28 @@
 
 <div class="row">
     <div class="col-md-8">
-        @* Rozszerzono kolumnę, aby pomieścić pytania *@
         <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="All" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Tytul" class="control-label"></label>
+                <label asp-for="Tytul" class="control-label">Tytuł</label>
                 <input asp-for="Tytul" class="form-control" />
                 <span asp-validation-for="Tytul" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="CzasTrwania" class="control-label"></label>
-                <input asp-for="CzasTrwania" class="form-control" />
-                <span asp-validation-for="CzasTrwania" class="text-danger"></span>
+                <label asp-for="LiczbaPytan" class="control-label">Liczba pytań</label>
+                <input asp-for="LiczbaPytan" class="form-control" type="number" min="0" />
+                <span asp-validation-for="LiczbaPytan" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Dziedzina" class="control-label"></label>
+                <label asp-for="Dziedzina" class="control-label">Dziedzina</label>
                 <input asp-for="Dziedzina" class="form-control" />
                 <span asp-validation-for="Dziedzina" class="text-danger"></span>
             </div>
 
             <div id="pytania-container">
                 <h2>Pytania</h2>
-                <div class="pytanie-group">
-                    @* Pierwsze pytanie *@
-                    <label>Treść pytania:</label><br />
-                    <input type="text" name="Pytania[0].Tekst" class="form-control" /><br />
-
-                    <label>Odpowiedź 1:</label><br />
-                    <input type="text" name="Pytania[0].Odpowiedzi[0].Tekst" class="form-control" /><br />
-                    <input type="checkbox" name="Pytania[0].Odpowiedzi[0].CzyPoprawna" value="true" /> <label>Poprawna</label><br />
-
-                    <label>Odpowiedź 2:</label><br />
-                    <input type="text" name="Pytania[0].Odpowiedzi[1].Tekst" class="form-control" /><br />
-                    <input type="checkbox" name="Pytania[0].Odpowiedzi[1].CzyPoprawna" value="true" /> <label>Poprawna</label><br />
-
-                    <label>Odpowiedź 3:</label><br />
-                    <input type="text" name="Pytania[0].Odpowiedzi[2].Tekst" class="form-control" /><br />
-                    <input type="checkbox" name="Pytania[0].Odpowiedzi[2].CzyPoprawna" value="true" /> <label>Poprawna</label><br />
-
-                    <label>Odpowiedź 4:</label><br />
-                    <input type="text" name="Pytania[0].Odpowiedzi[3].Tekst" class="form-control" /><br />
-                    <input type="checkbox" name="Pytania[0].Odpowiedzi[3].CzyPoprawna" value="true" /> <label>Poprawna</label><br />
-                    <hr />
-                </div>
+                <!-- Pytania będą generowane dynamicznie w tym miejscu -->
             </div>
-
-            <button type="button" id="dodaj-pytanie" class="btn btn-success">Dodaj pytanie</button>
 
             <div class="form-group">
                 <input type="submit" value="Utwórz" class="btn btn-primary" />
@@ -73,36 +49,43 @@
 
     <script>
         $(document).ready(function () {
-            var pytanieIndex = 1; // Indeks dla kolejnych pytań
+            function generujPytania() {
+                var liczba = parseInt($('#LiczbaPytan').val()) || 0;
+                var container = $('#pytania-container');
 
-            $("#dodaj-pytanie").click(function () {
-                var nowePytanie = `
+                container.children('.pytanie-group').remove();
+
+                for (var i = 0; i < liczba; i++) {
+                    var pytanieHTML = `
                             <div class="pytanie-group">
+                                <h3>Pytanie ${i + 1}</h3>
                                 <label>Treść pytania:</label><br />
-                                <input type="text" name="Pytania[${pytanieIndex}].Tekst" class="form-control" /><br />
+                                <input type="text" name="Pytania[${i}].Tekst" class="form-control" required /><br />
 
                                 <label>Odpowiedź 1:</label><br />
-                                <input type="text" name="Pytania[${pytanieIndex}].Odpowiedzi[0].Tekst" class="form-control" /><br />
-                                <input type="checkbox" name="Pytania[${pytanieIndex}].Odpowiedzi[0].CzyPoprawna" value="true" /> <label>Poprawna</label><br />
+                                <input type="text" name="Pytania[${i}].Odpowiedzi[0].Tekst" class="form-control" required /><br />
+                                <input type="radio" name="Pytania[${i}].SelectedAnswer" value="0" /> <label>Poprawna</label><br />
 
                                 <label>Odpowiedź 2:</label><br />
-                                <input type="text" name="Pytania[${pytanieIndex}].Odpowiedzi[1].Tekst" class="form-control" /><br />
-                                <input type="checkbox" name="Pytania[${pytanieIndex}].Odpowiedzi[1].CzyPoprawna" value="true" /> <label>Poprawna</label><br />
+                                <input type="text" name="Pytania[${i}].Odpowiedzi[1].Tekst" class="form-control" required /><br />
+                                <input type="radio" name="Pytania[${i}].SelectedAnswer" value="1" /> <label>Poprawna</label><br />
 
                                 <label>Odpowiedź 3:</label><br />
-                                <input type="text" name="Pytania[${pytanieIndex}].Odpowiedzi[2].Tekst" class="form-control" /><br />
-                                <input type="checkbox" name="Pytania[${pytanieIndex}].Odpowiedzi[2].CzyPoprawna" value="true" /> <label>Poprawna</label><br />
+                                <input type="text" name="Pytania[${i}].Odpowiedzi[2].Tekst" class="form-control" required /><br />
+                                <input type="radio" name="Pytania[${i}].SelectedAnswer" value="2" /> <label>Poprawna</label><br />
 
                                 <label>Odpowiedź 4:</label><br />
-                                <input type="text" name="Pytania[${pytanieIndex}].Odpowiedzi[3].Tekst" class="form-control" /><br />
-                                <input type="checkbox" name="Pytania[${pytanieIndex}].Odpowiedzi[3].CzyPoprawna" value="true" /> <label>Poprawna</label><br />
+                                <input type="text" name="Pytania[${i}].Odpowiedzi[3].Tekst" class="form-control" required /><br />
+                                <input type="radio" name="Pytania[${i}].SelectedAnswer" value="3" /> <label>Poprawna</label><br />
                                 <hr />
                             </div>
                         `;
+                    container.append(pytanieHTML);
+                }
+            }
 
-                $("#pytania-container").append(nowePytanie);
-                pytanieIndex++;
-            });
+            $('#LiczbaPytan').on('input', generujPytania);
+            generujPytania();
         });
     </script>
 }

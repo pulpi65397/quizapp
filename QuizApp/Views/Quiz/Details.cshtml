@@ -7,7 +7,6 @@
 <h1>Szczegóły quizu</h1>
 
 <div>
-    <h4>Quiz</h4>
     <hr />
     <dl class="row">
         <dt class="col-sm-2">
@@ -17,10 +16,10 @@
             @Html.DisplayFor(model => model.Tytul)
         </dd>
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.CzasTrwania)
+            @Html.DisplayNameFor(model => model.LiczbaPytan)
         </dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.CzasTrwania)
+            @Html.DisplayFor(model => model.LiczbaPytan)
         </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Dziedzina)
@@ -32,10 +31,12 @@
             @Html.DisplayNameFor(model => model.Pytania)
         </dt>
         <dd class="col-sm-10">
+            <ul>
             @foreach (var pytanie in Model.Pytania)
             {
-                <p>@pytanie.Tekst</p>
+                <li>@pytanie.Tekst</li>
             }
+            </ul>
         </dd>
     </dl>
 </div>

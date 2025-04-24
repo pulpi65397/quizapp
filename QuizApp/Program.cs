@@ -14,7 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Dodaj DbContext do usługi
 builder.Services.AddDbContext<QuizAppContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("QuizAppContext")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("QuizAppContext"))
+           .EnableSensitiveDataLogging() // Dodaj tę linię
+           .LogTo(Console.WriteLine));    // Loguj zapytania do konsoli
 
 // Dodaj usługi tożsamości
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -44,6 +46,15 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.SupportedCultures = supportedCultures;
     options.SupportedUICultures = supportedCultures;
 });
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.User.RequireUniqueEmail = false; // Wyłącz wymaganie maila
+    options.Password.RequireDigit = true;    // Wymagaj cyfry (domyślnie true)
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true; // Znak specjalny
+    options.Password.RequiredLength = 6;            // Minimalna długość
+});
 
 builder.Services.AddMvc()
     .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
@@ -55,7 +66,12 @@ builder.Services.AddMvc()
 
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
 
+    SeedData.Initialize(services).GetAwaiter().GetResult();
+}
 // Skonfiguruj potok żądań
 if (!app.Environment.IsDevelopment())
 {

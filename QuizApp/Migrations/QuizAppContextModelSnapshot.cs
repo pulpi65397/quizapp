@@ -275,12 +275,12 @@ namespace QuizApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CzasTrwania")
-                        .HasColumnType("int");
-
                     b.Property<string>("Dziedzina")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LiczbaPytan")
+                        .HasColumnType("int");
 
                     b.Property<string>("Tytul")
                         .IsRequired()
@@ -361,9 +361,8 @@ namespace QuizApp.Migrations
                     b.Property<int>("QuizId")
                         .HasColumnType("int");
 
-                    b.Property<string>("UzytkownikId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("UzytkownikId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -466,7 +465,7 @@ namespace QuizApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ApplicationUser", "Uzytkownik")
+                    b.HasOne("QuizApp.Models.Uzytkownik", "Uzytkownik")
                         .WithMany()
                         .HasForeignKey("UzytkownikId")
                         .OnDelete(DeleteBehavior.Cascade)

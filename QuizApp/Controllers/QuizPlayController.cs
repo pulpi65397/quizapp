@@ -1,20 +1,16 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using QuizApp.Data;
 using QuizApp.Models;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 
-
 public class QuizPlayController : Controller
 {
     private readonly QuizAppContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
 
-    public QuizPlayController(QuizAppContext context, UserManager<ApplicationUser> userManager)
+    public QuizPlayController(QuizAppContext context)
     {
         _context = context;
-        _userManager = userManager;
     }
 
     public async Task<IActionResult> Start(int? id)
@@ -62,7 +58,7 @@ public class QuizPlayController : Controller
             int maxPunkty = 1000;
             long maxCzas = 30000;
 
-            punktyZaOdpowiedz = (int)(maxPunkty * (1 - (double)czasOdpowiedzi / maxCzas));
+            punktyZaOdpowiedz = maxPunkty - (int)(maxPunkty * Math.Min(1, (double)czasOdpowiedzi / 1000));
             if (punktyZaOdpowiedz < 0) punktyZaOdpowiedz = 0;
         }
 
@@ -71,14 +67,45 @@ public class QuizPlayController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Submit(int quizId, Dictionary<int, Tuple<int, long>> odpowiedzi)
+    public async Task<IActionResult> Submit(int quizId, Dictionary<int, Tuple<int, long>> odpowiedzi, string userNick)
     {
         int punkty = 0;
+        int userId;
+
+        
+        var loggedUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrEmpty(loggedUserId) && int.TryParse(loggedUserId, out userId))
+        {
+            // Użytkownik jest zalogowany, użyj jego ID
+        }
+        else
+        {
+            
+            var existingUzytkownik = await _context.Uzytkownik
+                .FirstOrDefaultAsync(u => u.Nick == userNick);
+
+            if (existingUzytkownik == null)
+            {
+                var newUzytkownik = new Uzytkownik
+                {
+                    Nick = userNick
+                };
+                _context.Uzytkownik.Add(newUzytkownik);
+                await _context.SaveChangesAsync();
+                userId = newUzytkownik.Id; 
+            }
+            else
+            {
+                userId = existingUzytkownik.Id; 
+            }
+        }
+
+
         foreach (var odpowiedz in odpowiedzi)
         {
             var pytanie = await _context.Pytanie
                 .Include(p => p.Odpowiedzi)
-                .FirstOrDefaultAsync(p => p.Id == odpowiedz.Key && p.QuizId == quizId);
+                .FirstOrDefaultAsync(p => p.Id == odpowiedz.Key);
 
             if (pytanie != null)
             {
@@ -87,71 +114,75 @@ public class QuizPlayController : Controller
 
                 if (poprawnaOdpowiedz != null)
                 {
-                    int maxPunkty = 1000;
-                    long maxCzas = 30000;
-                    long czasOdpowiedzi = odpowiedz.Value.Item2;
-
-                    int punktyZaOdpowiedz = (int)(maxPunkty * (1 - (double)czasOdpowiedzi / maxCzas));
-                    if (punktyZaOdpowiedz < 0) punktyZaOdpowiedz = 0;
-                    punkty += punktyZaOdpowiedz;
+                    punkty += (int)(1000 * (odpowiedz.Value.Item2 <= 1000 ? 1 : (1 - (double)odpowiedz.Value.Item2 / 30000)));
                 }
             }
         }
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(userId))
-        {
-            var guestUser = await _userManager.FindByNameAsync("guest");
-
-            if (guestUser == null)
-            {
-                guestUser = new ApplicationUser { UserName = "guest" }; // Używamy UserName
-                var result = await _userManager.CreateAsync(guestUser, "Haslo123");
-                if (!result.Succeeded)
-                {
-                    return BadRequest(result.Errors);
-                }
-            }
-            userId = guestUser.Id;
-        }
 
         var wynik = new Wynik
         {
             QuizId = quizId,
-            UzytkownikId = userId,
-            Punkty = punkty,
-            CzasUkonczenia = TimeSpan.Zero
+            UzytkownikId = userId, 
+            Punkty = punkty
         };
 
         _context.Wynik.Add(wynik);
         await _context.SaveChangesAsync();
 
-        return RedirectToAction("Wynik", new { quizId = quizId, punkty = punkty });
+        return Ok();
     }
 
-    public async Task<IActionResult> Wynik(int quizId, int punkty)
+    public async Task<IActionResult> Wynik(int quizId, int punkty, string userId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        int parsedUserId;
+        Uzytkownik uzytkownik;
 
-        if (string.IsNullOrEmpty(userId))
+        
+        var loggedUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrEmpty(loggedUserId) && int.TryParse(loggedUserId, out parsedUserId))
         {
-            var guestUser = await _userManager.FindByNameAsync("guest");
-            if (guestUser == null)
+            
+            uzytkownik = await _context.Uzytkownik.FindAsync(parsedUserId);
+            if (uzytkownik == null)
             {
-                guestUser = new ApplicationUser { UserName = "guest" }; // Używamy UserName
-                _context.Users.Add(guestUser);
-                await _context.SaveChangesAsync();
+                return NotFound("Nie znaleziono użytkownika w bazie danych.");
             }
-            userId = guestUser.Id;
+        }
+        else
+        {
+            
+            if (!int.TryParse(userId, out parsedUserId))
+            {
+                return BadRequest("Nieprawidłowy identyfikator użytkownika.");
+            }
+
+            
+            uzytkownik = await _context.Uzytkownik.FindAsync(parsedUserId);
+            if (uzytkownik == null)
+            {
+                return NotFound("Nie znaleziono użytkownika-goscia.");
+            }
         }
 
-        var wynik = await _context.Wynik
-            .FirstOrDefaultAsync(w => w.QuizId == quizId && w.UzytkownikId == userId);
+        
+        var wynik = new Wynik
+        {
+            QuizId = quizId,
+            UzytkownikId = parsedUserId,
+            Punkty = punkty,
+            CzasyOdpowiedziJson = "[]",
+            OdpowiedziJson = "[]"
+        };
 
+        
+        _context.Wynik.Add(wynik);
+        await _context.SaveChangesAsync();
+
+        
         ViewBag.Punkty = punkty;
 
-        return View("~/Views/Wynik/Index.cshtml");
+        return View("~/Views/Wynik/Index.cshtml", wynik);
     }
 
     public async Task<IActionResult> GetUserNick(int userId)
@@ -159,7 +190,7 @@ public class QuizPlayController : Controller
         var uzytkownik = await _context.Uzytkownik.FindAsync(userId);
         if (uzytkownik == null)
         {
-            return Content("Gość"); // Domyślny nick, jeśli użytkownik nie istnieje
+            return Content("Gość"); 
         }
         return Content(uzytkownik.Nick);
     }

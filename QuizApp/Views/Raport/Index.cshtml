@@ -1,0 +1,24 @@
+﻿@model List<QuizApp.Models.WynikViewModel>
+
+<h2>Wyniki</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Quiz ID</th>
+            <th>Nick użytkownika</th>
+            <th>Punkty</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var wynik in Model)
+        {
+            <tr>
+                <td>@wynik.QuizId</td>
+                <td>@wynik.UzytkownikNick</td>
+                <td>@wynik.Punkty</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<p><a href="@Url.Action("EksportujCsv", "Raport")">Eksportuj do CSV</a></p>

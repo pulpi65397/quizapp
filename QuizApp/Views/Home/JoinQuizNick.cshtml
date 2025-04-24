@@ -16,3 +16,25 @@
     </div>
     <button type="submit" class="btn btn-primary">Dołącz</button>
 </form>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var nickField = $('#Nick');
+            var errorSpan = $('[data-valmsg-for="Nick"]');
+
+            // Ukryj komunikat na starcie, jeśli pole nie jest puste
+            if (nickField.val().trim() !== '') {
+                errorSpan.hide();
+            }
+
+            // Obsługa zdarzenia input
+            nickField.on('input', function () {
+                if ($(this).val().trim() !== '') {
+                    errorSpan.hide();
+                } else {
+                    errorSpan.show();
+                }
+            });
+        });
+    </script>
+}

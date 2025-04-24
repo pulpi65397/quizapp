@@ -7,84 +7,88 @@
 <h1>Quizy</h1>
 
 <p>
-    <a asp-action="Create">Utwórz nowy quiz</a>
+    <a asp-action="Create" class="btn btn-primary">Utwórz nowy quiz</a>
 </p>
 
-<form asp-controller="Quiz" asp-action="Index" method="get">
-    <p>
-        <select asp-for="QuizDziedzina" asp-items="Model.Dziedziny">
+<form asp-controller="Quiz" asp-action="Index" method="get" class="form-inline">
+    <div class="form-group mb-2">
+        <label for="QuizDziedzina" class="mr-2">Dziedzina:</label>
+        <select asp-for="QuizDziedzina" asp-items="Model.Dziedziny" class="form-control">
             <option value="">Wszystkie</option>
         </select>
-        <label>Wyszukaj: <input type="text" asp-for="SearchString" /></label>
-        <input type="submit" value="Filtruj" />
-    </p>
+    </div>
+    <div class="form-group mx-sm-3 mb-2">
+        <label for="SearchString" class="mr-2">Wyszukaj:</label>
+        <input type="text" asp-for="SearchString" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-secondary mb-2">Filtruj</button>
 </form>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                <a asp-action="Index" asp-route-sortOrder="@ViewData["TytulSortParm"]">
-                    @Html.DisplayNameFor(model => model.Quizy![0].Tytul)
-                    @if (ViewData["TytulSortParm"] == "")
-                    {
-                        <i class="fas fa-sort-up"></i> @* Ikona rosnąco *@
-                    }
-                    else if (ViewData["TytulSortParm"] == "tytul_desc")
-                    {
-                        <i class="fas fa-sort-down"></i> @* Ikona malejąco *@
-                    }
-                </a>
-            </th>
-            <th>
-                <a asp-action="Index" asp-route-sortOrder="@ViewData["CzasTrwaniaSortParm"]">
-                    @Html.DisplayNameFor(model => model.Quizy![0].CzasTrwania)
-                    @if (ViewData["CzasTrwaniaSortParm"] == "czastrwania")
-                    {
-                        <i class="fas fa-sort-up"></i> @* Ikona rosnąco *@
-                    }
-                    else if (ViewData["CzasTrwaniaSortParm"] == "czastrwania_desc")
-                    {
-                        <i class="fas fa-sort-down"></i> @* Ikona malejąco *@
-                    }
-                </a>
-            </th>
-            <th>
-                <a asp-action="Index" asp-route-sortOrder="@ViewData["DziedzinaSortParm"]">
-                    @Html.DisplayNameFor(model => model.Quizy![0].Dziedzina)
-                    @if (ViewData["DziedzinaSortParm"] == "dziedzina")
-                    {
-                        <i class="fas fa-sort-up"></i> @* Ikona rosnąco *@
-                    }
-                    else if (ViewData["DziedzinaSortParm"] == "dziedzina_desc")
-                    {
-                        <i class="fas fa-sort-down"></i> @* Ikona malejąco *@
-                    }
-                </a>
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Quizy!)
-        {
+@if (Model.Quizy.Any())
+{
+    <table class="table table-striped table-bordered mt-3">
+        <thead>
             <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Tytul)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.CzasTrwania)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Dziedzina)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Szczegóły</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Usuń</a> |
-                    <a asp-controller="QuizPlay" asp-action="Start" asp-route-id="@item.Id">Rozpocznij</a>
-                </td>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["TytulSortParm"]">
+                        @Html.DisplayNameFor(model => model.Quizy![0].Tytul)
+                        @if (ViewData["TytulSortParm"] == "")
+                        {
+                            <i class="fas fa-sort-up"></i>
+                        }
+                        else if (ViewData["TytulSortParm"] == "tytul_desc")
+                        {
+                            <i class="fas fa-sort-down"></i>
+                        }
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["LiczbaPytanSortParm"]">
+                        @Html.DisplayNameFor(model => model.Quizy![0].LiczbaPytan)
+                        @if (ViewData["LiczbaPytanSortParm"] == "liczbapytan")
+                        {
+                            <i class="fas fa-sort-up"></i>
+                        }
+                        else if (ViewData["LiczbaPytanSortParm"] == "liczbapytan_desc")
+                        {
+                            <i class="fas fa-sort-down"></i>
+                        }
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["DziedzinaSortParm"]">
+                        @Html.DisplayNameFor(model => model.Quizy![0].Dziedzina)
+                        @if (ViewData["DziedzinaSortParm"] == "dziedzina")
+                        {
+                            <i class="fas fa-sort-up"></i>
+                        }
+                        else if (ViewData["DziedzinaSortParm"] == "dziedzina_desc")
+                        {
+                            <i class="fas fa-sort-down"></i>
+                        }
+                    </a>
+                </th>
+                <th>Akcje</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Quizy!)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.Tytul)</td>
+                    <td>@Html.DisplayFor(modelItem => item.LiczbaPytan)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Dziedzina)</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Edytuj</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Szczegóły</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Usuń</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="alert alert-warning mt-3">Brak dostępnych quizów.</p>
+}

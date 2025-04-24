@@ -33,7 +33,7 @@ namespace QuizApp.Controllers
                 if (result.Succeeded)
                 {
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Quiz");
                 }
 
                 foreach (var error in result.Errors)
@@ -55,15 +55,21 @@ namespace QuizApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, lockoutOnFailure: false); // Używamy UserName
+                var result = await _signInManager.PasswordSignInAsync(
+                    model.UserName,
+                    model.Password,
+                    model.RememberMe,
+                    lockoutOnFailure: false
+                );
 
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Quiz");
                 }
 
-                ModelState.AddModelError("", "Nieudane logowanie.");
+                ModelState.AddModelError(string.Empty, "Nieprawidłowy login lub hasło.");
             }
+
             return View(model);
         }
 

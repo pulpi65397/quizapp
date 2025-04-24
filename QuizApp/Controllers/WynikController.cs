@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using QuizApp.Data;
 using QuizApp.Models;
+using System.Security.Claims;
 
 public class WynikController : Controller
 {
@@ -14,24 +13,23 @@ public class WynikController : Controller
         _context = context;
     }
 
-    // Akcja do wyświetlania wyników
-    public async Task<IActionResult> Index(int quizId, int punkty)
+    // Akcja do wyświetlania wyników i zapisywania ich do bazy
+    public async Task<IActionResult> Wyniki()
     {
-        // Pobieramy wynik na podstawie quizId (jeśli chcesz wyświetlić inne dane z bazy)
-        var wynik = await _context.Wynik
-             .FirstOrDefaultAsync(w => w.QuizId == quizId);
+        var wyniki = await _context.Wynik
+            .Join(
+                _context.Uzytkownik, // Używamy własnej tabeli Uzytkownik
+                wynik => wynik.UzytkownikId, // Klucz z tabeli Wynik
+                uzytkownik => uzytkownik.Id, // Klucz z tabeli Uzytkownik
+                (wynik, uzytkownik) => new WynikViewModel
+                {
+                    QuizId = wynik.QuizId,
+                    UzytkownikNick = uzytkownik.Nick, // Zakładając, że nick jest w polu Nick
+                    Punkty = wynik.Punkty
+                }
+            )
+            .ToListAsync();
 
-        if (wynik == null)
-        {
-            return NotFound();  // Zwraca 404, jeśli wynik nie został znaleziony
-        }
-
-        // Ustawienie punktów, które zostały przekazane
-        ViewData["Punkty"] = punkty;
-
-        return View(wynik);  // Wyświetla widok z wynikiem
+        return View(wyniki);
     }
-
-
-
 }

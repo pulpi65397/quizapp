@@ -2,7 +2,7 @@
   "Files": [
     {
       "Id": "E:\\kopia dokumenty\\STUDIA\\Semestr 6\\PZ\\Projekt2\\QuizApp\\obj\\Debug\\net7.0\\scopedcss\\projectbundle\\QuizApp.bundle.scp.css",
-      "PackagePath": "staticwebassets\\QuizApp.bundle.scp.css"
+      "PackagePath": "staticwebassets\\QuizApp.tdjlrdeiyz.bundle.scp.css"
     },
     {
       "Id": "E:\\kopia dokumenty\\STUDIA\\Semestr 6\\PZ\\Projekt2\\QuizApp\\wwwroot\\css\\site.css",
@@ -243,6 +243,10 @@
     {
       "Id": "E:\\kopia dokumenty\\STUDIA\\Semestr 6\\PZ\\Projekt2\\QuizApp\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
+    },
+    {
+      "Id": "obj\\Debug\\net7.0\\staticwebassets\\msbuild.QuizApp.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
     },
     {
       "Id": "obj\\Debug\\net7.0\\staticwebassets\\msbuild.QuizApp.Microsoft.AspNetCore.StaticWebAssets.props",

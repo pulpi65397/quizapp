@@ -13,14 +13,15 @@
         <h2 id="question-text"></h2>
         <div id="answers-container"></div>
     </div>
-    <button type="button" id="submit-button" class="btn btn-primary">Prześlij odpowiedź</button>
+    <button type="button" id="submit-button" class="btn btn-primary">
+        Prześlij odpowiedź
+        </button>
 </div>
 
-<!-- Kontener na ranking -->
+
 <div id="ranking-container" style="display: none;">
-    <h2>Ranking po pytaniu</h2>
+    <h2>Ranking</h2>
     <ul id="ranking-list"></ul>
-    <p id="next-question-timer">Przejście do kolejnego pytania za: <span id="countdown">10</span> sekund</p>
 </div>
 
 <link href="https://fonts.cdnfonts.com/css/seven-segment" rel="stylesheet">
@@ -133,40 +134,44 @@
         let rankingTimeout;
         let countdownInterval;
 
-        // Funkcja wyświetlająca pytanie
+        
         function wyswietlPytanie(pytanie) {
             $("#question-text").text(pytanie.tekst);
             $("#answers-container").empty();
             pytanie.odpowiedzi.forEach(odpowiedz => {
                 const odpowiedzHtml = `
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="odpowiedz" value="${odpowiedz.id}" id="odpowiedz-${odpowiedz.id}">
-                                <label class="form-check-label" for="odpowiedz-${odpowiedz.id}">${odpowiedz.tekst}</label>
-                            </div>`;
+                <div class="form-check">
+                <input class="form-check-input" type="radio" name="odpowiedz" value="${odpowiedz.id}" id="odpowiedz-${odpowiedz.id}">
+                <label class="form-check-label" for="odpowiedz-${odpowiedz.id}">${odpowiedz.tekst}</label>
+                </div>`;
                 $("#answers-container").append(odpowiedzHtml);
             });
             $("#submit-button").prop("disabled", false);
         }
 
-        // Funkcja do uruchomienia dokładnego timera
-        function startTimer(seconds) {
-            let startTime = Date.now();
-            let endTime = startTime + seconds * 1000;
 
-            const updateTimer = () => {
-                const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
-                $("#timer").text(remaining);
+    function startTimer(seconds) {
+        let remaining = seconds;
+        $("#timer").text(remaining);
 
-                if (remaining <= 5) $("#timer").addClass("red");
-                else $("#timer").removeClass("red");
+        const interval = setInterval(() => {
+            remaining--;
+            $("#timer").text(remaining);
 
-                if (remaining > 0) requestAnimationFrame(updateTimer);
-                else $("#submit-button").click();
-            };
+            if (remaining <= 5) {
+                $("#timer").addClass("red");
+            }
 
-            cancelAnimationFrame(timerInterval);
-            updateTimer();
-        }
+            if (remaining <= 0) {
+                clearInterval(interval);
+                console.log("Czas minął, automatyczne wysłanie odpowiedzi.");
+                $("#submit-button").click(); // Automatyczne wysłanie odpowiedzi
+            }
+        }, 1000);
+    }
+
+
+
 
         // Funkcja wyświetlająca ranking
         function showRanking(ranking, isLastQuestion) {
@@ -202,19 +207,22 @@
             $("#ranking-container").hide();
             clearInterval(countdownInterval);
 
-            if (aktualnePytanieIndex < pytania.length - 1) {
-                aktualnePytanieIndex++;
-                wyswietlPytanie(pytania[aktualnePytanieIndex]);
-                startTimer(30);
-            }
-        }
-
-        // Obsługa zdarzeń SignalR
-        connection.on("PokazPytanie", (pytanie) => {
-            pytania[aktualnePytanieIndex] = pytanie;
-            wyswietlPytanie(pytanie);
+        if (aktualnePytanieIndex < pytania.length - 1) {
+            aktualnePytanieIndex++;
+            wyswietlPytanie(pytania[aktualnePytanieIndex]);
             startTimer(30);
-        });
+        } else {
+            console.log("Koniec quizu - brak więcej pytań.");
+        }
+    }
+
+
+         // Obsługa zdarzeń SignalR
+         connection.on("PokazPytanie", (pytanie) => {
+            wyswietlPytanie(pytanie);
+            startTimer(30); // Uruchom timer na 30 sekund
+         });
+
 
         connection.on("PytanieZakonczone", async () => {
             const ranking = await connection.invoke("PobierzRanking", quizId);
@@ -241,23 +249,19 @@
             })
             .catch(err => console.error(err));
 
-        // Obsługa przycisku przesyłania
+
         $("#submit-button").click(function () {
-            const wybranaOdpowiedz = $("input[name='odpowiedz']:checked").val();
+            const wybranaOdpowiedz = $("input[name='odpowiedz']:checked").val() || 0; // Domyślna odpowiedź
             const czasOdpowiedzi = 30 - parseInt($("#timer").text());
 
-            if (wybranaOdpowiedz) {
-                cancelAnimationFrame(timerInterval);
-                $("#submit-button").prop("disabled", true);
-                console.log("Wysyłam odpowiedź na pytanie: ", pytania[aktualnePytanieIndex].id);
-                connection.invoke("OdpowiedzNaPytanie", quizId,
-                    pytania[aktualnePytanieIndex].id,
-                    parseInt(wybranaOdpowiedz),
-                    czasOdpowiedzi * 1000,
-                    uzytkownikId
-                );
-            }
+        connection.invoke("OdpowiedzNaPytanie", quizId,
+            pytania[aktualnePytanieIndex].id,
+            parseInt(wybranaOdpowiedz),
+            czasOdpowiedzi * 1000,
+            uzytkownikId
+        );
         });
+
         connection.on("OdpowiedzNaPytaniePotwierdzenie", (ranking, isLastQuestion) => {
             try {
                 $("#submit-button").prop("disabled", false); // Odblokuj przycisk
@@ -276,8 +280,14 @@
 
         // Dodaj obsługę zdarzenia KoniecQuizuKlient
         connection.on("KoniecQuizuKlient", (ranking) => {
-            $("#submit-button").prop("disabled", false); // Odblokuj przycisk
-            window.location.href = '@Url.Action("Wynik", "QuizPlay", new { quizId = Model.Id })' + '&punkty=' + punkty;
+            const userRanking = ranking.find(u => u.nick === uzytkownikNick);
+
+            if (userRanking) {
+                window.location.href = '@Url.Action("Wynik", "QuizPlay", new { quizId = Model.Id })'
+                    + '&punkty=' + userRanking.punkty
+                    + '&userId=' + uzytkownikId
+                    + '&userNick=' + encodeURIComponent(uzytkownikNick); // Dodaj nick użytkownika
+            }
         });
 
     });

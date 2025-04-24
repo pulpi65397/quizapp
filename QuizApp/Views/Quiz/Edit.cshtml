@@ -7,20 +7,34 @@
 <h1>Edytuj quiz</h1>
 
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-8">
         <form asp-action="Edit">
             <input type="hidden" asp-for="Id" />
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="All" class="text-danger"></div>
+
             <div class="form-group">
-                <label asp-for="Tytul" class="control-label"></label>
+                <label asp-for="Tytul" class="control-label">Tytuł</label>
                 <input asp-for="Tytul" class="form-control" />
                 <span asp-validation-for="Tytul" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="CzasTrwania" class="control-label"></label>
-                <input asp-for="CzasTrwania" class="form-control" />
-                <span asp-validation-for="CzasTrwania" class="text-danger"></span>
+                <label asp-for="LiczbaPytan" class="control-label">Liczba pytań</label>
+                <input asp-for="LiczbaPytan" class="form-control" type="number" min="0" />
+                <span asp-validation-for="LiczbaPytan" class="text-danger"></span>
             </div>
+
+            <div class="form-group">
+                <label asp-for="Dziedzina" class="control-label">Dziedzina</label>
+                <input asp-for="Dziedzina" class="form-control" />
+                <span asp-validation-for="Dziedzina" class="text-danger"></span>
+            </div>
+
+            <div id="pytania-container">
+                <h2>Pytania</h2>
+                <!-- Dynamicznie generowane pytania -->
+            </div>
+
             <div class="form-group">
                 <input type="submit" value="Zapisz" class="btn btn-primary" />
             </div>
@@ -36,4 +50,89 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function () {
+            function decodeHtmlEntities(text) {
+                const textArea = document.createElement('textarea');
+                textArea.innerHTML = text;
+                return textArea.value;
+            }
+
+            var existingPytania = @Html.Raw(Json.Serialize(Model.Pytania ?? new List<Pytanie>()));
+
+            function generujPytania() {
+                const liczba = parseInt($('#LiczbaPytan').val()) || 0;
+                const container = $('#pytania-container');
+                container.children('.pytanie-group').remove();
+
+                for (let i = 0; i < liczba; i++) {
+                    const pytanieData = i < existingPytania.length ? existingPytania[i] : {
+                        id: 0,
+                        tekst: '',
+                        odpowiedzi: Array(4).fill({ id: 0, tekst: '', czyPoprawna: false })
+                    };
+
+                    const decodedText = decodeHtmlEntities(pytanieData.tekst || '');
+
+                    const pytanieHTML = `
+                            <div class="pytanie-group">
+                                <input type="hidden" name="Pytania[${i}].Id" value="${pytanieData.id}" />
+                                <input type="hidden" name="Pytania[${i}].QuizId" value="@Model.Id" />
+
+                                <h3>Pytanie ${i + 1}</h3>
+
+                                <div class="form-group">
+                                    <label>Treść pytania:</label>
+                                    <input name="Pytania[${i}].Tekst"
+                                           class="form-control"
+                                           value="${decodedText.replace(/"/g, '&quot;')}"
+                                           required />
+                                </div>
+
+                                ${generujOdpowiedzi(i, pytanieData.odpowiedzi)}
+                                <hr />
+                            </div>
+                        `;
+                    container.append(pytanieHTML);
+                }
+            }
+
+            function generujOdpowiedzi(pytanieIndex, odpowiedzi) {
+                let html = '';
+                for (let j = 0; j < 4; j++) {
+                    const odp = odpowiedzi[j] || { id: 0, tekst: '', czyPoprawna: false };
+                    const decodedOdpText = decodeHtmlEntities(odp.tekst || '');
+
+                    html += `
+                            <div class="odpowiedz-group">
+                                <input type="hidden" name="Pytania[${pytanieIndex}].Odpowiedzi[${j}].Id"
+                                       value="${odp.id}" />
+
+                                <div class="form-group">
+                                    <label>Odpowiedź ${j + 1}:</label>
+                                    <input name="Pytania[${pytanieIndex}].Odpowiedzi[${j}].Tekst"
+                                           class="form-control"
+                                           value="${decodedOdpText.replace(/"/g, '&quot;')}"
+                                           required />
+                                </div>
+
+                                <div class="form-check">
+                                    <input type="radio"
+                                           name="Pytania[${pytanieIndex}].SelectedAnswer"
+                                           value="${j}"
+                                           ${odp.czyPoprawna ? 'checked' : ''}
+                                           class="form-check-input" />
+                                    <label class="form-check-label">Poprawna</label>
+                                </div>
+                            </div>
+                        `;
+                }
+                return html;
+            }
+
+            $('#LiczbaPytan').on('input', generujPytania);
+            generujPytania();
+        });
+    </script>
 }

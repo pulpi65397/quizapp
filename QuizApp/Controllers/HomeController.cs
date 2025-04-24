@@ -52,23 +52,7 @@ namespace QuizApp.Controllers
             model.QuizId = quizToken.QuizId;
             return View("JoinQuizNick", model); // Przekierowanie do widoku z nickiem
         }
-        /*
-              [HttpPost]
-              public IActionResult JoinQuizWithNick(JoinQuizViewModel model)
-              {
-                  if (string.IsNullOrEmpty(model.Nick))
-                  {
-                      ModelState.AddModelError("Nick", "Nick nie może być pusty.");
-                      return View("JoinQuizNick", model);
-                  }
-
-                  var user = new Uzytkownik { Nick = model.Nick };
-                  _context.Uzytkownik.Add(user);
-                  _context.SaveChanges();
-
-                  return Redirect($"/QuizPlay/Start/{model.QuizId}?userId={user.Id}");
-              }
-          */
+        
         [HttpPost]
         public IActionResult JoinQuizWithNick(JoinQuizViewModel model)
         {

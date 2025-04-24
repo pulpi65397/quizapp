@@ -1,8 +1,11 @@
-﻿namespace QuizApp.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace QuizApp.Models
 {
     public class Uzytkownik
     {
         public int Id { get; set; }
+        [Required]
         public string Nick { get; set; }
         //public int Punkty { get; set; }
         //public string ConnectionId { get; set; } // Dodaj ConnectionId do śledzenia połączenia SignalR
