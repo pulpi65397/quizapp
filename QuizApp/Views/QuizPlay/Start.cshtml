@@ -15,7 +15,7 @@
     </div>
     <button type="button" id="submit-button" class="btn btn-primary">
         Prześlij odpowiedź
-        </button>
+    </button>
 </div>
 
 
@@ -134,7 +134,7 @@
         let rankingTimeout;
         let countdownInterval;
 
-        
+
         function wyswietlPytanie(pytanie) {
             $("#question-text").text(pytanie.tekst);
             $("#answers-container").empty();
@@ -150,28 +150,31 @@
         }
 
 
-    function startTimer(seconds) {
-        let remaining = seconds;
-        $("#timer").text(remaining);
+                function startTimer(seconds) {
+                    clearInterval(timerInterval);
 
-        const interval = setInterval(() => {
-            remaining--;
-            $("#timer").text(remaining);
+                    let remaining = seconds;
+                    $("#timer").text(remaining).removeClass("red"); // Resetuj kolor na początku
 
-            if (remaining <= 5) {
-                $("#timer").addClass("red");
-            }
+                    timerInterval = setInterval(() => {
+                        remaining--;
+                        $("#timer").text(remaining);
 
-            if (remaining <= 0) {
-                clearInterval(interval);
-                console.log("Czas minął, automatyczne wysłanie odpowiedzi.");
-                $("#submit-button").click(); // Automatyczne wysłanie odpowiedzi
-            }
-        }, 1000);
-    }
+                    // Zmiana koloru w ostatnich 5 sekundach
+                    if (remaining <= 5) {
+                        $("#timer").addClass("red");
+                    } else {
+                        $("#timer").removeClass("red");
+                    }
 
-
-
+                    if (remaining <= 0) {
+                        clearInterval(timerInterval);
+                    if (aktualnePytanieIndex < pytania.length - 1) {
+                        $("#submit-button").click();
+                    }
+                }
+            }, 1000);
+        }
 
         // Funkcja wyświetlająca ranking
         function showRanking(ranking, isLastQuestion) {
@@ -207,22 +210,19 @@
             $("#ranking-container").hide();
             clearInterval(countdownInterval);
 
-        if (aktualnePytanieIndex < pytania.length - 1) {
-            aktualnePytanieIndex++;
-            wyswietlPytanie(pytania[aktualnePytanieIndex]);
-            startTimer(30);
-        } else {
-            console.log("Koniec quizu - brak więcej pytań.");
+            if (aktualnePytanieIndex < pytania.length - 1) {
+                aktualnePytanieIndex++;
+                wyswietlPytanie(pytania[aktualnePytanieIndex]);
+                startTimer(30);
+            }
         }
-    }
 
-
-         // Obsługa zdarzeń SignalR
-         connection.on("PokazPytanie", (pytanie) => {
+        // Obsługa zdarzeń SignalR
+        connection.on("PokazPytanie", (pytanie) => {
+            pytania[aktualnePytanieIndex] = pytanie;
             wyswietlPytanie(pytanie);
-            startTimer(30); // Uruchom timer na 30 sekund
-         });
-
+            startTimer(30);
+        });
 
         connection.on("PytanieZakonczone", async () => {
             const ranking = await connection.invoke("PobierzRanking", quizId);
@@ -251,17 +251,21 @@
 
 
         $("#submit-button").click(function () {
-            const wybranaOdpowiedz = $("input[name='odpowiedz']:checked").val() || 0; // Domyślna odpowiedź
+            const wybranaOdpowiedz = $("input[name='odpowiedz']:checked").val();
             const czasOdpowiedzi = 30 - parseInt($("#timer").text());
 
-        connection.invoke("OdpowiedzNaPytanie", quizId,
-            pytania[aktualnePytanieIndex].id,
-            parseInt(wybranaOdpowiedz),
-            czasOdpowiedzi * 1000,
-            uzytkownikId
-        );
+            if (wybranaOdpowiedz) {
+                cancelAnimationFrame(timerInterval);
+                $("#submit-button").prop("disabled", true);
+                console.log("Wysyłam odpowiedź na pytanie: ", pytania[aktualnePytanieIndex].id);
+                connection.invoke("OdpowiedzNaPytanie", quizId,
+                    pytania[aktualnePytanieIndex].id,
+                    parseInt(wybranaOdpowiedz),
+                    czasOdpowiedzi * 1000,
+                    uzytkownikId
+                );
+            }
         });
-
         connection.on("OdpowiedzNaPytaniePotwierdzenie", (ranking, isLastQuestion) => {
             try {
                 $("#submit-button").prop("disabled", false); // Odblokuj przycisk
