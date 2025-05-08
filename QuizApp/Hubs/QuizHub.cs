@@ -124,8 +124,16 @@ namespace QuizApp.Hubs
                 }
 
                 // 2. Obliczanie punktów
-                var poprawnaOdpowiedz = pytanie.Odpowiedzi.Any(o => o.Id == odpowiedzId && o.CzyPoprawna);
-                var punkty = poprawnaOdpowiedz ? (int)(1000 * (1 - (double)czasOdpowiedzi / 30000)) : 0;
+                bool poprawnaOdpowiedz = odpowiedzId != -1 && pytanie.Odpowiedzi.Any(o => o.Id == odpowiedzId && o.CzyPoprawna);
+                int punkty = poprawnaOdpowiedz ? (int)(1000 * (1 - (double)czasOdpowiedzi / 30000)) : 0;
+
+                // Jeśli odpowiedź nie została zaznaczona, traktuj jako błędną
+                if (odpowiedzId == -1)
+                {
+                    _logger.LogInformation($"Użytkownik {uzytkownikId} nie zaznaczył odpowiedzi na pytanie {pytanieId}. Traktowane jako błędna odpowiedź.");
+                    poprawnaOdpowiedz = false;
+                    punkty = 0; // Brak punktów za niezaznaczoną odpowiedź
+                }
 
                 // 3. Synchronizacja wątków
                 lock (quizState.SyncObject)
@@ -136,12 +144,18 @@ namespace QuizApp.Hubs
                         return;
                     }
 
-                    if (uzytkownik.Odpowiedzi.ContainsKey(pytanieId)) return;
+                    if (uzytkownik.Odpowiedzi.ContainsKey(pytanieId))
+                    {
+                        _logger.LogWarning($"Użytkownik {uzytkownikId} już odpowiedział na pytanie {pytanieId}");
+                        return;
+                    }
 
                     // 4. Aktualizacja stanu użytkownika
                     uzytkownik.Punkty += punkty;
                     uzytkownik.Odpowiedzi[pytanieId] = odpowiedzId;
                     uzytkownik.CzasyOdpowiedzi[pytanieId] = czasOdpowiedzi;
+
+                    _logger.LogInformation($"Użytkownik {uzytkownikId} odpowiedział na pytanie {pytanieId}. Poprawna: {poprawnaOdpowiedz}, Punkty: {punkty}");
                 }
 
                 // 5. Sprawdź czy wszyscy odpowiedzieli
@@ -181,6 +195,7 @@ namespace QuizApp.Hubs
                 await Clients.Caller.SendAsync("BladOdpowiedzi", "Wystąpił błąd systemowego przetwarzania odpowiedzi");
             }
         }
+
 
         private void StartIndywidualnyTimer(string quizIdStr, string uzytkownikId)
         {

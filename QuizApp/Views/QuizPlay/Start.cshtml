@@ -250,22 +250,32 @@
             .catch(err => console.error(err));
 
 
-        $("#submit-button").click(function () {
-            const wybranaOdpowiedz = $("input[name='odpowiedz']:checked").val();
+           $("#submit-button").click(function () {
+            const wybranaOdpowiedz = $("input[name='odpowiedz']:checked").val() || -1; // Jeśli brak wyboru, ustaw -1
             const czasOdpowiedzi = 30 - parseInt($("#timer").text());
 
-            if (wybranaOdpowiedz) {
-                cancelAnimationFrame(timerInterval);
-                $("#submit-button").prop("disabled", true);
-                console.log("Wysyłam odpowiedź na pytanie: ", pytania[aktualnePytanieIndex].id);
-                connection.invoke("OdpowiedzNaPytanie", quizId,
-                    pytania[aktualnePytanieIndex].id,
-                    parseInt(wybranaOdpowiedz),
-                    czasOdpowiedzi * 1000,
-                    uzytkownikId
-                );
+            // Wyślij odpowiedź do backendu
+            cancelAnimationFrame(timerInterval);
+            $("#submit-button").prop("disabled", true);
+            console.log("Wysyłam odpowiedź na pytanie: ", pytania[aktualnePytanieIndex].id);
+            connection.invoke("OdpowiedzNaPytanie", quizId,
+            pytania[aktualnePytanieIndex].id,
+            parseInt(wybranaOdpowiedz),
+            czasOdpowiedzi * 1000,
+            uzytkownikId
+            );
+
+            // Przejdź do następnego pytania
+            if (aktualnePytanieIndex < pytania.length - 1) {
+                aktualnePytanieIndex++;
+                wyswietlPytanie(pytania[aktualnePytanieIndex]);
+                startTimer(30);
+            } else {
+                // Jeśli to ostatnie pytanie, zakończ quiz
+                connection.invoke("ZakonczQuiz", quizId, uzytkownikId);
             }
         });
+
         connection.on("OdpowiedzNaPytaniePotwierdzenie", (ranking, isLastQuestion) => {
             try {
                 $("#submit-button").prop("disabled", false); // Odblokuj przycisk
